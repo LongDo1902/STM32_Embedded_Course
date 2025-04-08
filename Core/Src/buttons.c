@@ -9,39 +9,22 @@
 
 void buttonB1Init(){ //Initialize the button
 	__HAL_RCC_GPIOA_CLK_ENABLE(); //Enable RCC Clock
-	*GPIOA_MODER &= ~(0b11 << 0); //Reset bits 0 and 1 of MODER
-	*GPIOA_MODER |= (0b00 << 0); //Set the pin A0 as input
+	GPIOA_REG -> MODER &= ~(0b11 << 0); //Set the pin A0 as inpupt
 
-	*GPIOA_PUPDR &= ~(0b11 << 0); //Reset bits 0 and 1 of PUPDR
-	*GPIOA_PUPDR |= (0b10 << 0); //Set this pin as a pull-down config
+	GPIOA_REG -> PUPDR &= ~(0b11 << 0); //Reset bits 0 and 1 of PUPDR
+	GPIOA_REG -> PUPDR |= (0b10 << 0); //Set this pin as a pull-down config
 }
 
-void buttonControl(){ //Control the button state
-	while(*GPIOA_IDR & 0x01){ //check if PA0 is high
-		//Button pressed
-		LED_Control(LED3_PIN, 1);
-		HAL_Delay(100);
+char buttonState(){
+	return (GPIOA_REG -> IDR & 0x01); //return 1 for high and 0 for low
+}
 
-		LED_Control(LED4_PIN, 1);
-		HAL_Delay(100);
-
-		LED_Control(LED5_PIN, 1);
-		HAL_Delay(100);
-
-		LED_Control(LED6_PIN, 1);
-		HAL_Delay(100);
-
-		//Turn off all the LEDs before a new cycle
-		LED_Control(LED3_PIN, 0);
-		LED_Control(LED4_PIN, 0);
-		LED_Control(LED5_PIN, 0);
-		LED_Control(LED6_PIN, 0);
-		HAL_Delay(100);
+void buttonInterrupt(){
+	if(buttonState()){
+		//The button is pressed
+		LED_Control(LED_Green, 1);
 	}
-
-	//Butotn not pressed
-		LED_Control(LED3_PIN, 0);
-		LED_Control(LED4_PIN, 0);
-		LED_Control(LED5_PIN, 0);
-		LED_Control(LED6_PIN, 0);
+	else{
+		LED_Control(LED_Green, 0);
+	}
 }

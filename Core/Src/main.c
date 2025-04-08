@@ -1,34 +1,32 @@
 #include <stdio.h>
 #include "LEDs.h"
 #include "buttons.h"
+#include "registerAddress.h"
+#include "interrupts.h"
 
-int LED_Delay = 50;
+int LED_Delay = 300;
+
+void EXTI0_IRQHandler(){
+	if (buttonState()){
+		LED_Control(LED_Green, 1);
+	}
+	else{
+		LED_Control(LED_Green, 0);
+	}
+	EXTI_REG -> PR = (1 << 0); //Clear the bit so there is no pending flag
+}
 
 int main(void){
 	HAL_Init();
-	LEDs_Init();
+	EXTI0_Init();
+	LED_Green_Init();
+	LED_Red_Init();
 	buttonB1Init();
 
 	while(1){
-		buttonControl();
-//		LED_Control(LED3_PIN, 1); //Turn on
-//		HAL_Delay(LED_Delay); //ms
-//		LED_Control(LED3_PIN, 0); //Turn on
-//		HAL_Delay(LED_Delay); //ms
-//
-//		LED_Control(LED4_PIN, 1);
-//		HAL_Delay(LED_Delay); //ms
-//		LED_Control(LED4_PIN, 0);
-//		HAL_Delay(LED_Delay); //ms
-//
-//		LED_Control(LED5_PIN, 1);
-//		HAL_Delay(LED_Delay); //ms
-//		LED_Control(LED5_PIN, 0);
-//		HAL_Delay(LED_Delay); //ms
-//
-//		LED_Control(LED6_PIN, 1);
-//		HAL_Delay(LED_Delay); //ms
-//		LED_Control(LED6_PIN, 0);
-//		HAL_Delay(LED_Delay); //ms
+		LED_Control(LED_Red, 1);
+		HAL_Delay(LED_Delay);
+		LED_Control(LED_Red, 0);
+		HAL_Delay(LED_Delay);
 	}
 }
