@@ -3,6 +3,7 @@
 #include "buttons.h"
 #include "registerAddress.h"
 #include "interrupts.h"
+#include "l3gd20.h"
 
 int LED_Delay = 300;
 

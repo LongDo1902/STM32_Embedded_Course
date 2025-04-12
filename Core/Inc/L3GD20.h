@@ -7,6 +7,7 @@
 
 #ifndef INC_L3GD20_H_
 #define INC_L3GD20_H_
+#include <stdint.h>
 
 #define WHO_AM_I		0x0F //Device ID register
 #define CTRL_REG1		0x20 //Power mode, data rate, bandwidth, axis enable
@@ -23,7 +24,7 @@
 #define OUT_X_H			0x29 //X-axis angular rate (MSB)
 #define OUT_Y_L			0x2A //Y-axis angular rate (LSB)
 #define OUT_Y_H			0x2B //Y-axis angular rate (MSB)
-#define OUT_Z_L			0x2C //Z-axis angular rate (LSH)
+#define OUT_Z_L			0x2C //Z-axis angular rate (LSB)
 #define OUT_Z_H			0x2D //Z-axis angular rate (MSB)
 
 #define FIFO_CTRL_REG	0x2E //FIFO mode, watermark threshold
@@ -34,8 +35,10 @@
 
 #define INT1_TSH_XH		0x32 //X-axis interrupt threshold (MSB)
 #define INT1_TSH_XL		0x33 //X-axis interrupt threshold (LSB)
+
 #define INT1_TSH_YH		0x34 //Y-axis interrupt threshold (MSB)
 #define INT1_TSH_YL		0x35 //Y-axis interrupt threshold (LSB)
+
 #define INT1_TSH_ZH		0x36 //Z-axis interrupt threshold (MSB)
 #define INT1_TSH_ZL		0x37 //Z-axis interrupt threshold (LSB)
 
@@ -58,14 +61,14 @@
  * Power modes
  * Output Data Rate and Bandwidth
  */
-#define L3GD20_X_ENABLE		((uint8_t)0x01) //Set bit 1 to 1
-#define L3GD20_Y_ENABLE 	((uint8_t)0x02) //Set bit 2 to 1
-#define L3GD20_Z_ENABLE 	((uint8_t)0x04) //Set bit 3 to 1
-#define L3GD20_AXES_ENABLE	((uint8_t)0x07) //Set bit 1-3 to 1
-#define L3GD20_AXES_DISABLE	((uint8_t)0x00) //Set bit 1-3 to 0
+#define L3GD20_X_ENABLE		((uint8_t)0x01)
+#define L3GD20_Y_ENABLE 	((uint8_t)0x02)
+#define L3GD20_Z_ENABLE 	((uint8_t)0x04)
+#define L3GD20_AXES_ENABLE	((uint8_t)0x07)
+#define L3GD20_AXES_DISABLE	((uint8_t)0x00)
 
-#define L3GD20_MODE_POWERDOWN	((uint8_t)0x00) //Set bit 4 to 0
-#define L3GD20_ACTIVE			((uint8_t)0x08)) //Set but 4 to 1
+#define L3GD20_MODE_POWERDOWN	((uint8_t)0x00)
+#define L3GD20_ACTIVE			((uint8_t)0x08)
 
 #define L3GD20_ODR95HZ_BW12HZ	((uint8_t)0x00) //ODR 95Hz, Cut-off 12.5Hz
 #define L3GD20_ODR95HZ_BW25HZ	((uint8_t)0x30) //ODR 95Hz, Cut-off 25Hz
@@ -137,7 +140,7 @@
 #define L3GD20_LITTLE_ENDIAN	((uint8_t)0x00) //LSB is in lower register addr (Recommended sel)
 #define L3GD20_BIG_ENDIAN	 	((uint8_t)0x40) //MSB is in lower register addr
 
-#define L3GD20_BDU_CONTINUOS	((uint8_t)0x00) //Data can change while reading
+#define L3GD20_BDU_CONTINUOUS	((uint8_t)0x00) //Data can change while reading
 #define L3GD20_BDU_LOCK			((uint8_t)0x80) //Lock data update until finishing reading MSB and LSB (Recommended Sel)
 
 
@@ -174,16 +177,16 @@
  * AV = available
  */
 //New data available check
-#define L3GD20_STT_XDATA_AV		((uint8_t)0x01) //New X data is ready to read
-#define L3GD20_STT_YDATA_AV		((uint8_t)0x02) //New Y...ready to read
-#define L3GD20_STT_ZDATA_AV		((uint8_t)0x04) //New Z...ready to read
-#define L3GD20_STT_XYZDATA_AV	((uint8_t)0x08) //New XYZ...ready to read
+#define L3GD20_XDATA_AV_STT		((uint8_t)0x01) //New X data is ready to read
+#define L3GD20_YDATA_AV_STT		((uint8_t)0x02) //New Y...ready to read
+#define L3GD20_ZDATA_AV_STT		((uint8_t)0x04) //New Z...ready to read
+#define L3GD20_XYZDATA_AV_STT	((uint8_t)0x08) //New XYZ...ready to read
 
 //Data overrun check
-#define L3GD20_STT_XDATA_OVRN		((uint8_t)0x10) //New X data has overwritten the prev data
-#define L3GD20_STT_YDATA_OVRN		((uint8_t)0x20) //New Y...overrwritten the prev data
-#define L3GD20_STT_ZDATA_OVRN		((uint8_t)0x40) //New Z...overrwritten the prev data
-#define L3GD20_STT_XYZDATA_OVRN		((uint8_t)0x80) //New XYZ data has overwritten the prev data
+#define L3GD20_XDATA_OVRN_STT		((uint8_t)0x10) //New X data has overwritten the prev data
+#define L3GD20_YDATA_OVRN_STT		((uint8_t)0x20) //New Y...overrwritten the prev data
+#define L3GD20_ZDATA_OVRN_STT		((uint8_t)0x40) //New Z...overrwritten the prev data
+#define L3GD20_XYZDATA_OVRN_STT		((uint8_t)0x80) //New XYZ data has overwritten the prev data
 
 
 
@@ -255,71 +258,28 @@
 
 
 /*
- * INT1_THS_XH
+ * Set thresholds of XYZ for interrupt events
  * thrs = threshold
- */
-#define L3GD20_THS_XH(thrs)	((uint8_t)((thrs) & 0xFF))
-#define L3GD20_THS_XL(thrs)	((uint8_t)((thrs) & 0xFF))
-
-
-
-
-/*
- * INT1_THS_XL
- */
-
-
-
-/*
- * INT1_THS_YH
- */
-
-
-
-/*
- * INT1_THS_YL
- */
-
-
-
-/*
- * INT1_THS_YH
- */
-
-
-
-/*
+ * XL(8bits) + XH(7bits) = 15 bits = 0 to 32767
  *
  */
+#define L3GD20_THS_XL(x_thrs)	((uint8_t)((x_thrs) & 0xFF))		//Reg: INT1_THS_XL (0x33), 8 bits (masked with 0xFF just for safe, clear)
+#define L3GD20_THS_XH(x_thrs)	((uint8_t)(((x_thrs) >> 8) & 0x7F))	//Reg: INT1_THS_XH (0x32), 7 bits (masked with 0x7F to keep 7 bits only)
+
+#define L3GD20_THS_YL(y_thrs)	((uint8_t)((y_thrs) & 0xFF))		//Reg: INT1_THS_YL (0x35),...
+#define L3GD20_THS_YH(y_thrs)	((uint8_t)(((y_thrs) >> 8) & 0x7F)) //Reg: INT1_THS_YH (0x34),...
+
+#define L3GD20_THS_ZL(z_thrs)	((uint8_t)((z_thrs) & 0xFF))		//Reg: INT1_THS_ZL (0x37),...
+#define L3GD20_THS_ZH(z_thrs)	((uint8_t)(((z_thrs) >> 8) & 0x7F)) //Reg: INT1_THS_ZH (0x36),...
+
+
+
+/*
+ * INT1_DURATION (default: 0000 0000)
+ */
+#define L3GD20_INT1_WAIT_ENABLE	 ((uint8_t)0x80) //Interrupt waits until the signal stays below the thrs for the same duration
+#define L3GD20_INT1_WAIT_DISABLE ((uint8_t)0x00) //Interrupt turns OFF/ON immediately when the signal passes the thrs
+
+#define L3GD20_INT1_DURATION_SET(duration) ((uint8_t)((duration) & 0x7F)) //Clamp to 7 bits, prevents overflow
+
 #endif /* INC_L3GD20_H_ */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
