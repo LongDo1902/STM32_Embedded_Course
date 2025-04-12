@@ -43,10 +43,14 @@
 
 ////////////////////////////END OF REGISTER MAPPING////////////////////////////
 
+
+
 /*
- * WHO_AM_I (default: 1101 0100)
+ * WHO_AM_I (default: 1101 0100) (read only)
  */
 #define I_AM_L3GD20		((uint8_t)0xD4) //Default value
+
+
 
 /*
  * CTRL_REG1 (default: 0000 0111)
@@ -72,6 +76,8 @@
 #define L3GD20_ODR760HZ_BW30HZ	((uint8_t)0xC0) //ODR 760Hz, Cut-off 30Hz
 #define L3GD20_ODR760HZ_BW100HZ	((uint8_t)0xF0) //ODR 760Hz, Cut-off 100Hz
 
+
+
 /*
  * CTRL_REG2 (default: 0000 0000)
  * High-pass filter mode selection
@@ -94,6 +100,8 @@
 #define L3GD20_HPFCF9	((uint8_t)0x08) //0.018Hz, 0.09Hz, 0.18Hz
 #define L3GD20_HPFCF10	((uint8_t)0x09) //0.009Hz, 0.045Hz, 0.09Hz
 
+
+
 /*
  * CTRL_REG3 (default: 0000 0000)
  */
@@ -114,6 +122,8 @@
 #define L3GD20_INT1_ENABLE			((uint8_t)0x80)
 #define L3GD20_INT1_DISABLE			((uint8_t)0x00)
 
+
+
 /*
  * CTRL_REG4 (default: 0000 0000)
  */
@@ -131,7 +141,169 @@
 #define L3GD20_BDU_LOCK			((uint8_t)0x80) //Lock data update until finishing reading MSB and LSB (Recommended Sel)
 
 
+
+/*
+ * CTRL_REG5 (default: 0000 0000)
+ * For OUTSEL and INT1SEL, see figure 18
+ */
+#define L3GD20_OUTSEL_LPF1			((uint8_t)0x00) 		 //Gyro signal passes through LPF1 only
+#define L3GD20_OUTSEL_LPF1_WITH_HPF	((uint8_t)(0x10 | 0x01)) //...passes through LPF1 and HPF
+#define L3GD20_OUTSEL_LPF2 			((uint8_t)0x03)			 //...passes through LPF1 and LPF2 only
+#define L3GD20_OUTSEL_LPF2_WITH_HPF	((uint8_t)(0x10 | 0x03)) //...passes through LPF1, HPF, LPF2
+
+//Signal selected for interrupt system
+#define L3GD20_INT1SEL_LPF1				((uint8_t)0x00)			 //Raw output from LPF1
+#define L3GD20_INT1SEL_LPF1_WITH_HPF	((uint8_t)(0x10 | 0x04)) //LPF1 + HPF output
+#define L3GD20_INT1SEL_LPF2				((uint8_t)0x0C)			 //LPF1 + LPF2 output
+#define L3GD20_INT1SEL_LPF2_WITH_HPF	((uint8_t)(0x10 | 0x0C)) //LPF1 + HPF + LPF2 output
+
+#define L3GD20_HIGHPASS_ENABLE		((uint8_t)0x10) //Set HPen bit to 1
+#define L3GD20_HIGHPASS_DISABLE		((uint8_t)0x00) //Set HPen bit to 0
+
+#define L3GD20_FIFO_ENABLE			((uint8_t)0x40) //Set FIFO_EN to 1
+#define L3GD20_FIFO_DISABLE			((uint8_t)0x00) //Set FIFO_EN to 0
+
+#define L3GD20_BOOT_NORMALMODE		((uint8_t)0x80)
+#define L3GD20_BOOT_REBOOTMEM		((uint8_t)0x00)
+
+
+
+/*
+ * STATUS_REG
+ * Read only
+ * AV = available
+ */
+//New data available check
+#define L3GD20_STT_XDATA_AV		((uint8_t)0x01) //New X data is ready to read
+#define L3GD20_STT_YDATA_AV		((uint8_t)0x02) //New Y...ready to read
+#define L3GD20_STT_ZDATA_AV		((uint8_t)0x04) //New Z...ready to read
+#define L3GD20_STT_XYZDATA_AV	((uint8_t)0x08) //New XYZ...ready to read
+
+//Data overrun check
+#define L3GD20_STT_XDATA_OVRN		((uint8_t)0x10) //New X data has overwritten the prev data
+#define L3GD20_STT_YDATA_OVRN		((uint8_t)0x20) //New Y...overrwritten the prev data
+#define L3GD20_STT_ZDATA_OVRN		((uint8_t)0x40) //New Z...overrwritten the prev data
+#define L3GD20_STT_XYZDATA_OVRN		((uint8_t)0x80) //New XYZ data has overwritten the prev data
+
+
+
+/*
+ * FIFO_CTRL_REG (default: 0000 0000)
+ * WTM threshold can stores 5 bits (0-31 samples)
+ */
+#define L3GD20_FIFO_WTM(x) ((uint8_t)((x) & 0x1F)) //WTM stores 5bits (0-31), x = 0 to 31, (& 0x1F) is to avoid wrong input > 5bits
+
+#define L3GD20_FIFO_BYPASS		((uint8_t)0x00) //FIFO disabled. Data goes directly to out reg
+#define L3GD20_FIFO_FIFO		((uint8_t)0x20) //FIFO stores data until full and stops when full (read it manually)
+#define L3GD20_FIFO_STREAM		((uint8_t)0x40) //FIFO continously collects data, oldest data is overwritten
+#define L3GD20_FIFO_STREAM2FIFO	((uint8_t)0x60) //Starts in stream and freezes FIFO when WTM is hit
+#define L3GD20_BYPASS2STREAM	((uint8_t)0x80) //Starts in bypass, then switches to stream on interrupt
+
+
+
+/*
+ * FIFO_SRC_REG (read only)
+ * Just to check the status of WTM
+ * STT = status
+ */
+#define L3GD20_FIFO_WTM_STT		((uint8_t)0x80) //FIFO reached or > predefined WTM
+#define L3GD20_FIFO_OVRN_STT	((uint8_t)0x40) //FIFO is completely filled
+#define L3GD20_FIFO_EMPTY_STT	((uint8_t)0x20) //FIFO is empty
+#define L3GD20_FIFO_FSS_MASK	((uint8_t)0x1F) //FIFO sample count (0-31), check the sample counts form bit 0 to 4
+
+
+
+/*
+ * INT1_CFG (default: 0000 0000)
+ */
+#define L3GD20_INT1_XLOW_ENABLE		((uint8_t)0x01) //Enable interrupt request on measured X value lower than preset threshold
+#define L3GD20_INT1_XLOW_DISABLE	((uint8_t)0x00)	//Disable...
+#define L3GD20_INT1_XHIGH_ENABLE	((uint8_t)0x02) //Enable interrupt...higher than...
+#define L3GD20_INT1_XHIGH_DISABLE	((uint8_t)0x00) //Disable...
+
+#define L3GD20_INT1_YLOW_ENABLE		((uint8_t)0x04) //Enable interrupt request on measured Y value lower than present threshold
+#define L3GD20_INT1_YLOW_DISABLE	((uint8_t)0x00) //Disable...
+#define L3GD20_INT1_YHIGH_ENABLE	((uint8_t)0x08) //Enable interrupt...higher than...
+#define L3GD20_INT1_YHIGH_DISABLE	((uint8_t)0x00) //Disable...
+
+#define L3GD20_INT1_ZLOW_ENABLE		((uint8_t)0x10) //Enable interrupt request on measured Z value lower than present threshold
+#define L3GD20_INT1_ZLOW_DISABLE	((uint8_t)0x00) //Disable...
+#define L3GD20_INT1_ZHIGH_ENABLE	((uint8_t)0x20) //Enable interrupt...higher than...
+#define L3GD20_INT1_ZHIGH_DISABLE	((uint8_t)0x00) //Disable...
+
+#define L3GD20_INT1_LATCH			((uint8_t)0x40) //Interrupt stays active(latched) until INT1_SRC reg is read
+#define L3GD20_INT1_NOTLATCH		((uint8_t)0x00) //Interrupt auto clears when condition is no longer true
+#define L3GD20_INT1_AND				((uint8_t)0x80) //Interrupt only if all conditions are met
+#define L3GD20_INT1_OR				((uint8_t)0x00) //Interrupt if any condition is met
+
+
+
+/*
+ * INT1_SRC (read only)
+ * This register tells "Why the interrupt happened"
+ * It's like a note from Gyro saying "Hey! I triggered an interrupt, and here's what caused it"
+ * When LIR = 1, interrupt stays ON until INT1_SRC is read
+ */
+#define L3GD20_INT1_XLOW_STT	((uint8_t)0x01) //X Low event occurred
+#define L3GD20_INT1_XHIGH_STT	((uint8_t)0x02) //X High event occurred
+#define L3GD20_INT1_YLOW_STT	((uint8_t)0x04) //Y Low...
+#define L3GD20_INT1_YHIGH_STT	((uint8_t)0x08) //Y High...
+#define L3GD20_INT1_ZLOW_STT	((uint8_t)0x10) //Z Low...
+#define L3GD20_INT1_ZHIGH_STT	((uint8_t)0x20) //Z High...
+#define L3GD20_INT1_INTACTIVE	((uint8_t)0x40)	//One or more interrupts have been generated
+
+
+
+/*
+ * INT1_THS_XH
+ * thrs = threshold
+ */
+#define L3GD20_THS_XH(thrs)	((uint8_t)((thrs) & 0xFF))
+#define L3GD20_THS_XL(thrs)	((uint8_t)((thrs) & 0xFF))
+
+
+
+
+/*
+ * INT1_THS_XL
+ */
+
+
+
+/*
+ * INT1_THS_YH
+ */
+
+
+
+/*
+ * INT1_THS_YL
+ */
+
+
+
+/*
+ * INT1_THS_YH
+ */
+
+
+
+/*
+ *
+ */
 #endif /* INC_L3GD20_H_ */
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
