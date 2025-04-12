@@ -8,6 +8,7 @@
 #ifndef INC_L3GD20_H_
 #define INC_L3GD20_H_
 #include <stdint.h>
+//HELLO, just trial
 
 #define WHO_AM_I		0x0F //Device ID register
 #define CTRL_REG1		0x20 //Power mode, data rate, bandwidth, axis enable
