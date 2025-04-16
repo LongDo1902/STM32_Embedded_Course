@@ -11,6 +11,7 @@
 #include<stdio.h>
 #include <stdint.h>
 
+
 //Base Addresses for GPIO ports A-H
 //UL is unsigned Long
 #define GPIOA_BASE_ADDR 0x40020000UL
@@ -19,6 +20,7 @@
 #define GPIOD_BASE_ADDR 0x40020C00UL
 #define GPIOE_BASE_ADDR 0x40021000UL
 #define GPIOH_BASE_ADDR 0x40021C00UL
+
 
 //GPIO Registers Offset Value
 typedef struct{
@@ -44,6 +46,7 @@ typedef struct{
 //EXTI Registers
 #define EXTI_BASE_ADDR	0x40013C00UL
 
+
 //External Interrupt Registers Offset Value
 typedef struct{
 	volatile uint32_t IMR; 		//0x00 (Interrupt Mask Register)
@@ -54,23 +57,52 @@ typedef struct{
 	volatile uint32_t PR;		//0x14 (Pending Register)
 }EXTI_Register_Offset_t;
 
+
+//External Interrupt stores bit positions in NVIC
+typedef enum{
+	EXTI0 = 6, //External Interrupt 0
+	EXTI1, //...1
+	EXTI2, //...2
+	EXTI3, //...3
+	EXTI4  //...4
+}EXTI_Num_t;
+
+
+//External Interrupt stores their address
+typedef enum{
+	EXTI0_ADDR = 0x58,
+
+}EXTI_Addr_t;
+
+
+//NVIC - Interrupt Set-Enable Register (Cortex-M4 ref manual)
+typedef enum{
+	NVIC_ISER0 = 0xE000E100,
+	NVIC_ISER1 = 0xE000E104,
+	NVIC_ISER2 = 0xE000E108,
+	NVIC_ISER3 = 0xE000E10C,
+	NVIC_ISER4 = 0xE000E110,
+	NVIC_ISER5 = 0xE000E114,
+	NVIC_ISER6 = 0xE000E118,
+	NVIC_ISER7 = 0xE000E11C
+}NVIC_ISER_t;
+
+
 //Create a new definition and it is a pointer to a struct name EXTI_Register_Offset_t locate at base memory address
 #define EXTI_REG ((EXTI_Register_Offset_t*)EXTI_BASE_ADDR)
 
-//SRAM default address
-#define SRAM_ADDR_DEFAULT ((volatile uint32_t*)(0x20000000))
 
-//NVIC Registers (Cortex-M4 ref Manual)
-#define NVIC_ISER0 ((volatile uint32_t*)(0xE000E100))
-
-//System Control Register (Cortex-M4 ref Manual)
-#define VECTORTABLE_OFFSET_REG ((volatile uint32_t*)(0xE000ED08)) //Vector Table Offset Register
+//VTOR (Vector Table Offset Register) (Cortex-M4 ref manual)
+#define VTO_REG ((volatile uint32_t*)(0xE000ED08))
 
 
-
+//////////////////////////////END OF REGISTER//////////////////////////////
 /*
- * Function declarations
+ * Function Declarations
  */
-void offsetVectorTable();
+void EXTI_Init(char pin, NVIC_ISER_t NVIC_ISERx, EXTI_Num_t EXTIx);
+void EXTI_Offset_Init(); //Init EXTI offset
+
+
 
 #endif /* INC_RES_ADDR_H_ */

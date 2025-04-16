@@ -28,7 +28,7 @@ typedef enum{
 	my_GPIO_PIN_15
 }GPIO_pin;
 
-typedef enum {
+typedef enum{
 	my_GPIOA,
 	my_GPIOB,
 	my_GPIOC,

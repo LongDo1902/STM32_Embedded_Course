@@ -2,16 +2,24 @@
 #include "LEDs.h"
 #include "buttons.h"
 #include "registerAddress.h"
-#include "interrupts.h"
 
 int LED_Delay = 300; //ms
 
+void function(){
+	if(buttonState()){
+		LED_Control(LED_Green, 1);
+	}
+	else{
+		LED_Control(LED_Green, 0);
+	}
+	EXTI_REG -> PR = (1 << 0);
+}
 
 int main(void){
 	HAL_Init();
-	EXTI0_Init();
-	offsetVectorTable();
-	redirect_EXTI0_IRQHandler();
+	EXTI_Init(0, NVIC_ISER0, EXTI0);
+	EXTI_Offset_Init();
+	user_EXTI_IRQHandler(function);
 	LED_Green_Init();
 	LED_Red_Init();
 	buttonB1Init();
