@@ -8,6 +8,7 @@
 #ifndef INC_L3GD20_H_
 #define INC_L3GD20_H_
 #include <stdint.h>
+#include "registerAddress.h"
 
 #define WHO_AM_I		0x0F //Device ID register
 #define CTRL_REG1		0x20 //Power mode, data rate, bandwidth, axis enable
@@ -281,5 +282,15 @@
 #define L3GD20_INT1_WAIT_DISABLE ((uint8_t)0x00) //Interrupt turns OFF/ON immediately when the signal passes the thrs
 
 #define L3GD20_INT1_DURATION_SET(duration) ((uint8_t)((duration) & 0x7F)) //Clamp to 7 bits, prevents overflow
+
+////////////////////////////END OF REGISTER MAPPING////////////////////////////
+
+
+
+/*
+ * FUNCTION DECLARATIONS
+ */
+void L3GD20_Init();
+
 
 #endif /* INC_L3GD20_H_ */

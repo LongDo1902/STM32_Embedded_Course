@@ -32,7 +32,7 @@ typedef struct{
 }GPIO_Register_Offset_t;
 
 
-//Create new definition and it is a pointer to a struct name GPIO_Register_Offset_t locate at base memory address
+//Make a pointer called GPIOx_REG points to this memory layout at addr GPIOx_BASE_ADDR
 #define GPIOA_REG ((GPIO_Register_Offset_t*)GPIOA_BASE_ADDR)
 #define GPIOB_REG ((GPIO_Register_Offset_t*)GPIOB_BASE_ADDR)
 #define GPIOC_REG ((GPIO_Register_Offset_t*)GPIOC_BASE_ADDR)
@@ -57,7 +57,20 @@ typedef struct{
 //Create a new definition and it is a pointer to a struct name EXTI_Register_Offset_t locate at base memory address
 #define EXTI_REG ((EXTI_Register_Offset_t*)EXTI_BASE_ADDR)
 
-//NVIC Registers Cortex-M4
+//SRAM default address
+#define SRAM_ADDR_DEFAULT ((volatile uint32_t*)(0x20000000))
+
+//NVIC Registers (Cortex-M4 ref Manual)
 #define NVIC_ISER0 ((volatile uint32_t*)(0xE000E100))
+
+//System Control Register (Cortex-M4 ref Manual)
+#define VECTORTABLE_OFFSET_REG ((volatile uint32_t*)(0xE000ED08)) //Vector Table Offset Register
+
+
+
+/*
+ * Function declarations
+ */
+void offsetVectorTable();
 
 #endif /* INC_RES_ADDR_H_ */

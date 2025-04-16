@@ -17,7 +17,7 @@
 //#define LED6_PIN 15 //PD15
 
 typedef enum{
-	LED_Green = 12,
+	LED_Green = 12, //pin12
 	LED_Orange,
 	LED_Red,
 	LED_Blue

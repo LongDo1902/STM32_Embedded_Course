@@ -3,23 +3,15 @@
 #include "buttons.h"
 #include "registerAddress.h"
 #include "interrupts.h"
-#include "l3gd20.h"
 
-int LED_Delay = 300;
+int LED_Delay = 300; //ms
 
-void EXTI0_IRQHandler(){
-	if (buttonState()){
-		LED_Control(LED_Green, 1);
-	}
-	else{
-		LED_Control(LED_Green, 0);
-	}
-	EXTI_REG -> PR = (1 << 0); //Clear the bit so there is no pending flag
-}
 
 int main(void){
 	HAL_Init();
 	EXTI0_Init();
+	offsetVectorTable();
+	redirect_EXTI0_IRQHandler();
 	LED_Green_Init();
 	LED_Red_Init();
 	buttonB1Init();
@@ -31,3 +23,10 @@ int main(void){
 		HAL_Delay(LED_Delay);
 	}
 }
+
+
+
+
+
+
+

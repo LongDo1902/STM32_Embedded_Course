@@ -7,10 +7,10 @@
 
 #ifndef INC_INTERRUPTS_H_
 #define INC_INTERRUPTS_H_
-#include"registerAddress.h"
 
 //Function declaration
 void EXTI0_Init();
-
+void redirect_EXTI0_IRQHandler(); //Redirect and customize predefined EXTI0_IRQHandler
+void user_EXTI0_IRQHandler();
 
 #endif /* INC_INTERRUPTS_H_ */

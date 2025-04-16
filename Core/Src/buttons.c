@@ -6,6 +6,7 @@
  */
 #include "buttons.h"
 #include "LEDs.h"
+#include "registerAddress.h"
 
 void buttonB1Init(){ //Initialize the button
 	__HAL_RCC_GPIOA_CLK_ENABLE(); //Enable RCC Clock
