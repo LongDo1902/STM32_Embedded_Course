@@ -15,6 +15,7 @@ void function(){
 	EXTI_REG -> PR = (1 << 0);
 }
 
+
 int main(void){
 	HAL_Init();
 	EXTI_Init(0, NVIC_ISER0, EXTI0);

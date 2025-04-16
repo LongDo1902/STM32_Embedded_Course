@@ -93,8 +93,7 @@ typedef enum{
 
 
 //VTOR (Vector Table Offset Register) (Cortex-M4 ref manual)
-#define VTO_REG ((volatile uint32_t*)(0xE000ED08))
-
+//#define VTO_REG ((volatile uint32_t*)(0xE000ED08))
 
 //////////////////////////////END OF REGISTER//////////////////////////////
 /*

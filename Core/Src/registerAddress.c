@@ -33,6 +33,8 @@ void EXTI_Offset_Init(){
 	for(int i = 0; i < 0x198; i++){
 		*(offsetVectorTable + i) = *(originalVectorTable + i); //Copy to the new offset vector table
 	}
+	uint32_t* VTO_REG = (uint32_t*) 0xE000ED08;
+
 	*VTO_REG = 0x20000000;
 }
 
