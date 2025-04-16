@@ -19,6 +19,20 @@ void EXTI0_Init(){
 	*NVIC_ISER0 |= (1 << 6);
 }
 
+
+/*
+ * Redirect the EXTI0_IRQHandler to a new address 0x20000058
+ */
+void redirect_EXTI0_IRQHandler(){
+	//Declare a pointer (fncPointer) it stores the offset of address of EXTI0_IRQHandler function
+	uint32_t* fncPointer =(uint32_t*)(SRAM_ADDR_DEFAULT + 0x58); //0x20000058
+	*fncPointer = (uint32_t) user_EXTI0_IRQHandler; //Assign fnc addr to memory space of
+}
+
+
+/*
+ * Customized EXTI0_IRQHandler
+ */
 void user_EXTI0_IRQHandler(){
 	if(buttonState()){
 		LED_Control(LED_Green, 1);
@@ -29,8 +43,4 @@ void user_EXTI0_IRQHandler(){
 	EXTI_REG -> PR = (1 << 0); //clear the interrupt flag
 }
 
-void redirect_EXTI0_IRQHandler(){
-	//Declare a pointer (fncPointer) it stores the offset of address of EXTI0_IRQHandler function
-	uint32_t* fncPointer =(uint32_t*)(SRAM_ADDR_DEFAULT + 0x58);
-	*fncPointer = (uint32_t) user_EXTI0_IRQHandler;
-}
+
