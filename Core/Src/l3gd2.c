@@ -20,17 +20,17 @@
  * Pull CS LOW before sending SPI to tell the sensor you're talking to it
  * Pull CS HIGH after talking to SPI
  */
-#define CS_LOW 0
-#define CS_HIGH 1
-
-void L3GD20_CS_MODE(uint8_t cs_state){ //cs_state: 0 = LOW, cs_state: 1 = HIGH
-	if (cs_state == CS_LOW){
-		GPIO_WritePin(my_GPIOE, my_GPIO_PIN_3, my_GPIO_PIN_RESET); //Set port E pin 3 to low
-	}
-	else if (cs_state == CS_HIGH){
-		GPIO_WritePin(my_GPIOE, my_GPIO_PIN_3, my_GPIO_PIN_SET); //Set port E pin 3 to high
-	}
-}
+//#define CS_LOW 0
+//#define CS_HIGH 1
+//
+//void L3GD20_CS_MODE(uint8_t cs_state){ //cs_state: 0 = LOW, cs_state: 1 = HIGH
+//	if (cs_state == CS_LOW){
+//		GPIO_WritePin(my_GPIOE, my_GPIO_PIN_3, my_GPIO_PIN_RESET); //Set port E pin 3 to low
+//	}
+//	else if (cs_state == CS_HIGH){
+//		GPIO_WritePin(my_GPIOE, my_GPIO_PIN_3, my_GPIO_PIN_SET); //Set port E pin 3 to high
+//	}
+//}
 
 
 

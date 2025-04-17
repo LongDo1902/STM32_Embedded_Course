@@ -26,7 +26,7 @@ typedef enum{
 	my_GPIO_PIN_13,
 	my_GPIO_PIN_14,
 	my_GPIO_PIN_15
-}GPIO_pin;
+}GPIO_pin_t;
 
 typedef enum{
 	my_GPIOA,
@@ -35,17 +35,28 @@ typedef enum{
 	my_GPIOD,
 	my_GPIOE,
 	my_GPIOH
-} GPIO_portName;
+} GPIO_portName_t;
 
 
-#define my_GPIO_PIN_RESET 0
-#define my_GPIO_PIN_SET 1
+typedef enum{MODER, OTYPER, OSPEEDR, PUPDR, BSRR}GPIO_Mode_t;
+
+
+typedef enum{
+	my_GPIO_PIN_SET = 1,
+	my_GPIO_PIN_RESET = 0,
+	mode_0x00 = 0x00, //0b00
+	mode_0x01 = 0x01, //0x01
+	mode_0x02 = 0x02, //0b10
+	mode_0x03 = 0x03  //0b11
+}GPIO_State_t;
 
 /*
  * Function declarations
  */
-void GPIO_WritePin(GPIO_portName port, GPIO_pin pin, uint8_t GPIO_state);
-uint8_t GPIO_ReadPin(GPIO_portName port, GPIO_pin pin);
+void GPIO_WritePin (GPIO_pin_t pinNum,
+					GPIO_portName_t port,
+					GPIO_State_t state,
+					GPIO_Mode_t mode);
 
 
 #endif /* INC_GPIO_WRITE_READ_H_ */

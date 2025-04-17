@@ -7,13 +7,17 @@
 #include "buttons.h"
 #include "LEDs.h"
 #include "registerAddress.h"
+#include "gpio_write_read.h"
 
-void buttonB1Init(){ //Initialize the button
-	__HAL_RCC_GPIOA_CLK_ENABLE(); //Enable RCC Clock
-	GPIOA_REG -> MODER &= ~(0b11 << 0); //Set the pin A0 as inpupt
 
-	GPIOA_REG -> PUPDR &= ~(0b11 << 0); //Reset bits 0 and 1 of PUPDR
-	GPIOA_REG -> PUPDR |= (0b10 << 0); //Set this pin as a pull-down config
+/*
+ * A function to initialize any chosen button
+ * @param buttonPin is a pin number that is connected to a button
+ */
+void buttonInit(char buttonPin, GPIO_portName_t portName){
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	GPIO_WritePin(0, portName, mode_0x00, MODER); //Set buttonPin of portName as input
+	GPIO_WritePin(0, portName, mode_0x02, PUPDR); //Set buttonPin of portName as pull-down config
 }
 
 char buttonState(){

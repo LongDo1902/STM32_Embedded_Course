@@ -10,11 +10,13 @@
 
 #include <registerAddress.h>
 #include "stm32f4xx_hal.h"
+#include "gpio_write_read.h"
 
 //#define LED3_PIN 12 //PD12
 //#define LED4_PIN 13 //PD13
 //#define LED5_PIN 14 //PD14
 //#define LED6_PIN 15 //PD15
+
 
 typedef enum{
 	LED_Green = 12, //pin12

@@ -9,37 +9,34 @@
 #include "LEDs.h"
 
 //Initialize LEDs
-void LED_Green_Init(){ //PD12
+void LED_Green_Init(){
 	__HAL_RCC_GPIOD_CLK_ENABLE(); //Enable RCC Clock
-	GPIOD_REG -> MODER &= ~(0b11 << 24);
-	GPIOD_REG -> MODER |= (0b01 << 24);
+	GPIO_WritePin(12, my_GPIOD, mode_0x01, MODER); //Set PD12 as output
+
 }
 
-void LED_Orange_Init(){ //PD13
+void LED_Orange_Init(){
 	__HAL_RCC_GPIOD_CLK_ENABLE(); //Enable RCC Clock
-	GPIOD_REG -> MODER &= ~(0b11 << 26);
-	GPIOD_REG -> MODER |= (0b01 << 26);
+	GPIO_WritePin(13, my_GPIOD, mode_0x01, MODER); //Set PD13 as output
+
 }
 
 void LED_Red_Init(){
 	__HAL_RCC_GPIOD_CLK_ENABLE(); //Enable RCC Clock
-	GPIOD_REG -> MODER &= ~(0b11 << 28);
-	GPIOD_REG -> MODER |= (0b01 << 28);
+	GPIO_WritePin(14, my_GPIOD, mode_0x01, MODER); //Set PD14 as output
 }
 
 void LED_Blue_Init(){
-	__HAL_RCC_GPIOD_CLK_ENABLE(); //Enable RCC Clook
-	GPIOD_REG -> MODER &= ~(0b11 << 30);
-	GPIOD_REG -> MODER |= (0b01 << 30);
-
+	__HAL_RCC_GPIOD_CLK_ENABLE(); //Enable RCC Clock
+	GPIO_WritePin(15, my_GPIOD, mode_0x01, MODER); //Set PD14 as output
 }
 
 //Activate LEDs
 void LED_Control(LED_t LED_Color, int on_off){
 	if (on_off == 1){ //Turn on the LED
-		GPIOD_REG -> BSRR = (1 << LED_Color);
+		GPIO_WritePin(LED_Color, my_GPIOD, my_GPIO_PIN_SET, BSRR); //Set LEDPin of PortD to high
 	}
 	else{
-		GPIOD_REG -> BSRR = (1 << (LED_Color + 16)); //Otherwise turn off the LED
+		GPIO_WritePin(LED_Color, my_GPIOD, my_GPIO_PIN_RESET, BSRR); //Otherwise turn off the LED
 	}
 }

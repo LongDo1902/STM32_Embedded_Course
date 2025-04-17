@@ -2,6 +2,7 @@
 #include "LEDs.h"
 #include "buttons.h"
 #include "registerAddress.h"
+#include "gpio_write_read.h"
 
 int LED_Delay = 300; //ms
 
@@ -23,7 +24,7 @@ int main(void){
 	user_EXTI_IRQHandler(function);
 	LED_Green_Init();
 	LED_Red_Init();
-	buttonB1Init();
+	buttonInit(0, my_GPIOA);
 
 	while(1){
 		LED_Control(LED_Red, 1);
