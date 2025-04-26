@@ -12,12 +12,9 @@
 #include "stm32f4xx_hal.h"
 #include "gpio_write_read.h"
 
-//#define LED3_PIN 12 //PD12
-//#define LED4_PIN 13 //PD13
-//#define LED5_PIN 14 //PD14
-//#define LED6_PIN 15 //PD15
-
-
+/*
+ * Collections of LED pins which associated with its color
+ */
 typedef enum{
 	LED_Green = 12, //pin12
 	LED_Orange,
@@ -25,7 +22,9 @@ typedef enum{
 	LED_Blue
 }LED_t;
 
-//Functions Declaration
+/*
+ * Function declaration
+ */
 void LED_Green_Init();
 void LED_Orange_Init();
 void LED_Red_Init();

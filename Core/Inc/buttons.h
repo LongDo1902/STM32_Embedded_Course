@@ -11,10 +11,11 @@
 #include "stm32f4xx_hal.h"
 #include "gpio_write_read.h"
 
-void buttonInit(char buttonPin, GPIO_portName_t portName);
+/*
+ * Function declaration
+ */
+void buttonInit(char buttonPin, GPIO_PortName_t portName);
 char buttonState();
 void buttonInterrupt();
-
-
 
 #endif /* INC_BUTTONS_H_ */
