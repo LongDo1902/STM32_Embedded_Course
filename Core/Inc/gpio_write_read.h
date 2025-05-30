@@ -77,7 +77,7 @@ typedef enum{
 /*
  * Collections of GPIO Offset Register Name
  */
-typedef enum{MODER, OTYPER, OSPEEDR, PUPDR, BSRR, AFRL, AFRH}GPIO_Mode_t;
+typedef enum{MODER, OTYPER, OSPEEDR, PUPDR, IDR, ODR, BSRR, AFRL, AFRH}GPIO_Mode_t;
 
 /*
  * Collections of EXTI Offset Register Name
@@ -133,5 +133,13 @@ void GPIO_WriteUART(uint8_t bitPosition,
 					UART_Name_t userUARTx,
 					UART_Mode_t mode,
 					uint32_t value);
+
+char readUART(uint8_t bitPosition,
+			  UART_Name_t userUARTx,
+			  UART_Mode_t mode);
+
+char readPin(uint8_t bitPosition,
+			GPIO_PortName_t port,
+			GPIO_Mode_t mode);
 
 #endif /* INC_GPIO_WRITE_READ_H_ */

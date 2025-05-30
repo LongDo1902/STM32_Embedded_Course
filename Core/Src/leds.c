@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 #include "registerAddress.h"
-#include "LEDs.h"
+#include "leds.h"
 #include "stm32f4xx_hal.h"
 
 /*
