@@ -61,7 +61,13 @@
 #define TIM10_BASE_ADDR	0x40014400UL
 #define TIM11_BASE_ADDR	0x40014800UL
 
+/*
+ * FLASH INTERFACE REG ADDR
+ */
+#define FLASH_INTF_REG_ADDR 0x40023800UL
 ////////////END OF BASE ADDRESSES////////////
+
+
 
 /*
  * GPIO Registers Offsets
@@ -107,19 +113,32 @@ typedef struct{
  * I2C Register Offsets
  */
 typedef struct{
-	volatile uint16_t CR1;		//0x00 (Control Reg 1)
-	volatile uint16_t CR2;		//0x04 (Control Reg 2)
-	volatile uint16_t OAR1;		//0x08 (Own Addr Reg 1)
-	volatile uint16_t OAR2;		//0x0C (Own Addr Reg 2)
-	volatile uint16_t DR;		//0x10 (Data Reg)
-	volatile uint16_t SR1;		//0x14 (Status Reg 1)
-	volatile uint16_t SR2;		//0x18 (Status Reg 2)
-	volatile uint16_t CCR;		//0x1C (Clock Control Reg)
-	volatile uint16_t TRISE;	//0x20 (TRISE Reg)
-	volatile uint16_t FLTR;		//0x24 (FLTR Reg)
+	volatile uint32_t CR1;		//0x00 (Control Reg 1)
+	volatile uint32_t CR2;		//0x04 (Control Reg 2)
+	volatile uint32_t OAR1;		//0x08 (Own Addr Reg 1)
+	volatile uint32_t OAR2;		//0x0C (Own Addr Reg 2)
+	volatile uint32_t DR;		//0x10 (Data Reg)
+	volatile uint32_t SR1;		//0x14 (Status Reg 1)
+	volatile uint32_t SR2;		//0x18 (Status Reg 2)
+	volatile uint32_t CCR;		//0x1C (Clock Control Reg)
+	volatile uint32_t TRISE;	//0x20 (TRISE Reg)
+	volatile uint32_t FLTR;		//0x24 (FLTR Reg)
 }I2C_Register_Offset_t;
 
+/*
+ * FLASH Interface Register Offset
+ */
+typedef struct {
+	volatile uint32_t FLASH_ACR;		//0x00 (Flash Access Control Reg)
+	volatile uint32_t FLASH_KEYR;		//0x04 (Flash Key Reg)
+	volatile uint32_t FLASH_OPTKEYR;	//0x08 (Flash Option Key Reg)
+	volatile uint32_t FLASH_SR;			//0x0C (Flash Status Reg)
+	volatile uint32_t FLASH_CR;			//0x10 (Flash Control Reg)
+	volatile uint32_t FLASH_OPTCR;		//0x14 (Flash Option Control Reg)
+}Flash_IntF_Register_Offset_t;
 ////////////END OF REGISTER OFFSET STRUCTS////////////
+
+
 
 /*
  * GPIOs Reg Pointers
@@ -143,7 +162,13 @@ typedef struct{
 #define UART2_REG ((UART_Register_Offset_t*)UART2_BASE_ADDR)
 #define UART6_REG ((UART_Register_Offset_t*)UART6_BASE_ADDR)
 
+/*
+ * Flash Reg Pointers
+ */
+#define FLASH_REG ((Flash_IntF_Register_Offset_t*) FLASH_INTF_REG_ADDR)
 ////////////END OF REGISTER POINTERS////////////
+
+
 
 /*
  * Vector Table Positions
@@ -215,7 +240,7 @@ typedef enum{
 ////////////END OF ENUM////////////
 
 /*
- * Custome symbolic addresses for EXTI IRQ vector labels
+ * Custom symbolic addresses for EXTI IRQ vector labels
  */
 #define EXTI0_ADDR 0x58
 #define EXTI1_ADDR 0x5C
@@ -225,7 +250,7 @@ typedef enum{
 /*
  * NVIC - Interrupt Set-Enable Reg (Cortex-M4 Ref Manual)
  */
-#define NVIC_ISER0 ((volatile uint32_t*)0xE000E100) //Địa chỉ
+#define NVIC_ISER0 ((volatile uint32_t*)0xE000E100)
 #define NVIC_ISER1 ((volatile uint32_t*)0xE000E104)
 #define NVIC_ISER2 ((volatile uint32_t*)0xE000E108)
 #define NVIC_ISER3 ((volatile uint32_t*)0xE000E10C)
@@ -238,7 +263,8 @@ typedef enum{
  * VTOR (Vector Table Offset Reg) (Cortex-M4 ref manual)
  */
 #define VTO_REG ((volatile uint32_t*)(0xE000ED08))
-
 ///////////////END OF ADDRESSES DEFINES///////////////
+
+
 
 #endif /* INC_RES_ADDR_H_ */

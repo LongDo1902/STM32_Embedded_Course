@@ -13,6 +13,8 @@
 #include "gpio_write_read.h"
 #include "registerAddress.h"
 
+
+
 /*
  * UART Initialize in general
  */
@@ -121,7 +123,7 @@ void UART_Init(char TXPin,
 
 
 /*
- * Receives a character over the specified UART interface
+ * @brief	Receives a character over the specified UART interface
  *
  * This function waits until data is available in the receive buffer (RXNE == 1)
  * Checks for a parity error (PE == 1), and if there is no error, returns the received byte
@@ -153,13 +155,22 @@ char my_UART_Receive(UART_Name_t UARTx){
 	return data;
 }
 
+
+
 /*
- * inputData has 8 bits long
+ * 	@brief	Send one byte over a selected UART port
+ * 	@param 	Target peripheral: my_UART1, my_UART2, my_UART6.
+ * 	@param	inputData: write any value/data to but only <= 1 byte
+ *
+ * 	Routine:
+ * 		1. Waits for TXE = 1 (DR empty)
+ * 		2. Writes the inputData to DR register
+ * 		3. Wait for TC = 1 to ensure the byte has completely left the shift register.
  */
 void my_UART_Transmit(UART_Name_t UARTx, uint8_t inputData){
-	while((readUART(7, UARTx, SR) & 1) == 0); //Check if transmit data register is empty, == 0 means not empty
-	GPIO_WriteUART(0, UARTx, DR, inputData); //Write inputData to DR register.
-	while((readUART(6, UARTx, SR) & 1) == 0); //Check if transmission is completed.
+	while((readUART(7, UARTx, SR) & 1) == 0);
+	GPIO_WriteUART(0, UARTx, DR, inputData);
+	while((readUART(6, UARTx, SR) & 1) == 0);
 }
 
 

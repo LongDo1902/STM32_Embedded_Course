@@ -34,14 +34,22 @@ int main(void){
 	EXTI_Offset_Init(desiredOffsetAddr);
 	user_EXTI_IRQHandler(EXTIFunction, 0x58);
 
-	UART_Init(6, 7, my_GPIOB, my_UART1, 9600, PARITY_ODD, WORDLENGTH_9B);
+//	UART_Init(6, 7, my_GPIOB, my_UART1, 9600, PARITY_ODD, WORDLENGTH_9B);
+
+	UART_Init(6, 7, my_GPIOB, my_UART1, 9600, PARITY_EVEN, WORDLENGTH_8B);
 
 	while(1){
+		my_UART_Transmit(my_UART1, 'b');
+		if (my_UART_Receive(my_UART1) == 'a'){
+			LED_Control(LED_Red, 1);
+		} else{
+			LED_Control(LED_Red, 0);
+		}
 
-		my_UART_Transmit(my_UART1, 'a');
-		LED_Control(LED_Red, 1);
-		HAL_Delay(LED_Delay);
-		LED_Control(LED_Red, 0);
-		HAL_Delay(LED_Delay);
+//		my_UART_Transmit(my_UART1, 'a');
+//		LED_Control(LED_Red, 1);
+//		HAL_Delay(LED_Delay);
+//		LED_Control(LED_Red, 0);
+//		HAL_Delay(LED_Delay);
 	}
 }
