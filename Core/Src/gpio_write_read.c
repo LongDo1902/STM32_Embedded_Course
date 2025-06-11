@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include "gpio_write_read.h"
 #include "registerAddress.h"
 
@@ -74,7 +75,7 @@ void GPIO_WritePin(GPIO_Pin_t pinNum, GPIO_PortName_t port, GPIO_Mode_t mode, GP
 			break;
 
 		case AFRL:
-			if(pinNum > 7) return;
+			if(pinNum > 7) return; //Invalid pin
 			reg = &GPIOx -> AFRL;
 			bitWidth = 4;
 			bitShift = pinNum * bitWidth;
@@ -95,6 +96,46 @@ void GPIO_WritePin(GPIO_Pin_t pinNum, GPIO_PortName_t port, GPIO_Mode_t mode, GP
 	uint32_t value = ((uint32_t)state << bitShift) & mask; //& mask to zero out anything that accidentally spilled outside the field
 	*reg = (*reg & ~mask) | value; //Clear the old but before OR with value
 }
+
+
+/*
+ * @brief Locks the configuration of a specific GPIO pin.
+ *        Once locked, the pin's mode, output type, speed, pull-up/down,
+ *        and alternate function cannot be changed until the next MCU reset.
+ *
+ * @param 	pinNum 	The GPIO pin number (0 to 15).
+ * @param 	port 	The GPIO port name (e.g., my_GPIOA, my_GPIOB).
+ * @return 	true if the lock was successful, false otherwise.
+ */
+
+bool GPIO_LockPin(GPIO_Pin_t pinNum, GPIO_PortName_t port){
+	if(pinNum > 15) return false;
+
+	GPIO_Register_Offset_t* GPIOx;
+
+	switch(port){
+		case my_GPIOA: GPIOx = GPIOA_REG; break; //Assign pointer GPIOx to pointer GPIOA_REG
+		case my_GPIOB: GPIOx = GPIOB_REG; break;
+		case my_GPIOC: GPIOx = GPIOC_REG; break;
+		case my_GPIOD: GPIOx = GPIOD_REG; break;
+		case my_GPIOE: GPIOx = GPIOE_REG; break;
+		case my_GPIOH: GPIOx = GPIOH_REG; break;
+		default: return false; //Invalid port!
+	}
+
+	uint16_t pinMask = ((1U << pinNum) & 0xFFFF);
+
+	/*
+	 * Lock key write sequence
+	 */
+	GPIOx -> LCKR = (1U << 16) | pinMask; //Write 1 to bit 16 and | with pinMask
+	GPIOx -> LCKR = (0 << 16) | pinMask; //Write 0 to bit 16...
+	GPIOx -> LCKR = (1U << 16) | pinMask; //Write 1 to bit 16...
+	(void)GPIOx -> LCKR; //Read LCKR
+
+	return (GPIOx -> LCKR & (1U << 16)) != 0;
+}
+
 
 
 /*

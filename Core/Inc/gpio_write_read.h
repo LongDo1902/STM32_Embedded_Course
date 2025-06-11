@@ -8,6 +8,7 @@
 #ifndef INC_GPIO_WRITE_READ_H_
 #define INC_GPIO_WRITE_READ_H_
 #include <stdint.h>
+#include <stdbool.h>
 
 /*
  * Collections of pins 0 to 15
@@ -28,7 +29,7 @@ typedef enum{
 	my_GPIO_PIN_12,
 	my_GPIO_PIN_13,
 	my_GPIO_PIN_14,
-	my_GPIO_PIN_15
+	my_GPIO_PIN_15,
 }GPIO_Pin_t;
 
 /*
@@ -56,28 +57,28 @@ typedef enum{
 	mode_03 = 0x03, //0b11
 
 	//Alternate Function:
-	AF0 = 0x0000,
-	AF1,
-	AF2,
-	AF3,
-	AF4,
-	AF5,	//0x0101
-	AF6,
-	AF7,
-	AF8,
-	AF9,
-	AF10,	//0x1010
-	AF11,
-	AF12,
-	AF13,
-	AF14,
-	AF15	//0x1111
+	AF0 = 0x0,
+	AF1 = 0x1,
+	AF2 = 0x2,
+	AF3 = 0x3,
+	AF4 = 0x4,
+	AF5 = 0x5,
+	AF6 = 0x6,
+	AF7 = 0x7,
+	AF8 = 0x8,
+	AF9 = 0x9,
+	AF10 = 0xA,
+	AF11 = 0xB,
+	AF12 = 0xC,
+	AF13 = 0xD,
+	AF14 = 0xE,
+	AF15 = 0xF,
 }GPIO_State_t;
 
 /*
  * Collections of GPIO Offset Register Name
  */
-typedef enum{MODER, OTYPER, OSPEEDR, PUPDR, IDR, ODR, BSRR, AFRL, AFRH}GPIO_Mode_t;
+typedef enum{MODER, OTYPER, OSPEEDR, PUPDR, IDR, ODR, BSRR, LCKR, AFRL, AFRH}GPIO_Mode_t;
 
 /*
  * Collections of EXTI Offset Register Name
@@ -88,6 +89,10 @@ typedef enum{IMR, EMR, RTSR, FTSR, SWIER, PR}EXTI_Mode_t;
  * Collections of UART Offset Register Name
  */
 typedef enum{SR, DR, BRR, CR1, CR2, CR3, GTPR}UART_Mode_t;
+
+/*
+ * Collections of SPI Offset Register Name
+ */
 
 /*
  * Collections of UARTx name
@@ -129,6 +134,9 @@ void GPIO_WritePin (GPIO_Pin_t pinNum,
 					GPIO_PortName_t port,
 					GPIO_Mode_t mode,
 					GPIO_State_t state);
+
+bool GPIO_LockPin(GPIO_Pin_t pinNum,
+				  GPIO_PortName_t port);
 
 void GPIO_WriteEXTI(uint8_t bitPosition,
 					EXTI_Mode_t mode,

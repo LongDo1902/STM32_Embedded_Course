@@ -13,8 +13,8 @@
 /*
  * Function Declarations
  */
-void UART_Init(char TXPin,
-			   char RXPin,
+void UART_Init(GPIO_Pin_t TXPin,
+			   GPIO_Pin_t RXPin,
 			   GPIO_PortName_t portName,
 			   UART_Name_t UARTx,
 			   uint16_t baudRate,

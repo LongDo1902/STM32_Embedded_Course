@@ -80,6 +80,7 @@ typedef struct{
 	volatile uint32_t IDR;		//0x10 (Input Data Reg)
 	volatile uint32_t ODR;		//0x14 (Output Data Reg)
 	volatile uint32_t BSRR;		//0x18 (Bit Set/Reset Reg)
+	volatile uint32_t LCKR;		//0x1C (GPIO Port Configuration Lock Register)
 	volatile uint32_t AFRL;		//0x20 (Alternate Function Low Reg)
 	volatile uint32_t AFRH;		//0x24 (Alternate Function High Reg)
 }GPIO_Register_Offset_t;
@@ -126,6 +127,21 @@ typedef struct{
 }I2C_Register_Offset_t;
 
 /*
+ * SPI Register Offsets
+ */
+typedef struct{
+	volatile uint32_t SPI_CR1;		//0x00 (Control Reg 1)
+	volatile uint32_t SPI_CR2;		//0x04 (Control Reg 2)
+	volatile uint32_t SPI_SR;		//0x08 (Status Reg)
+	volatile uint32_t SPI_DR;		//0x0C (Data Reg)
+	volatile uint32_t SPI_CRC;		//0x10 (CRC Polynomial Reg)
+	volatile uint32_t SPI_RXCRCR;	//0x14 (RX CRC Reg)
+	volatile uint32_t SPI_TXCRCR;	//0x18 (TX CRC Reg)
+	volatile uint32_t SPI_I2SCFGR;	//0x1C (I2S Config Reg)
+	volatile uint32_t SPI_I2SPR;	//0x20 (I2S Prescaler Reg)
+}SPI_Register_Offset_t;
+
+/*
  * FLASH Interface Register Offset
  */
 typedef struct {
@@ -136,6 +152,8 @@ typedef struct {
 	volatile uint32_t FLASH_CR;			//0x10 (Flash Control Reg)
 	volatile uint32_t FLASH_OPTCR;		//0x14 (Flash Option Control Reg)
 }Flash_IntF_Register_Offset_t;
+
+
 ////////////END OF REGISTER OFFSET STRUCTS////////////
 
 
@@ -161,6 +179,15 @@ typedef struct {
 #define UART1_REG ((UART_Register_Offset_t*)UART1_BASE_ADDR)
 #define UART2_REG ((UART_Register_Offset_t*)UART2_BASE_ADDR)
 #define UART6_REG ((UART_Register_Offset_t*)UART6_BASE_ADDR)
+
+/*
+ * SPI Reg Pointers
+ */
+#define SPI1_REG ((SPI_Register_Offset_t*)SPI1_BASE_ADDR)
+#define SPI2_REG ((SPI_Register_Offset_t*)SPI2_BASE_ADDR)
+#define SPI3_REG ((SPI_Register_Offset_t*)SPI3_BASE_ADDR)
+#define SPI4_REG ((SPI_Register_Offset_t*)SPI4_BASE_ADDR)
+#define SPI5_REG ((SPI_Register_Offset_t*)SPI5_BASE_ADDR)
 
 /*
  * Flash Reg Pointers

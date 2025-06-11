@@ -14,12 +14,11 @@
 #include "registerAddress.h"
 
 
-
 /*
  * UART Initialize in general
  */
-void UART_Init(char TXPin,
-			   char RXPin,
+void UART_Init(GPIO_Pin_t TXPin,
+			   GPIO_Pin_t RXPin,
 			   GPIO_PortName_t portName,
 			   UART_Name_t UARTx,
 			   uint16_t baudRate,
@@ -46,6 +45,7 @@ void UART_Init(char TXPin,
 		case my_GPIOD: __HAL_RCC_GPIOD_CLK_ENABLE(); break;
 		case my_GPIOE: __HAL_RCC_GPIOE_CLK_ENABLE(); break;
 		case my_GPIOH: __HAL_RCC_GPIOH_CLK_ENABLE(); break;
+		default: return; //Other cases
 	}
 
 	/*
@@ -54,16 +54,16 @@ void UART_Init(char TXPin,
 	GPIO_WritePin(TXPin, portName, MODER, mode_02);
 	GPIO_WritePin(RXPin, portName, MODER, mode_02);
 
+	GPIO_Mode_t afrRegTX = (TXPin <= 7) ? AFRL : AFRH;
+	GPIO_Mode_t afrRegRX = (RXPin <= 7) ? AFRL : AFRH;
 
-	if(RXPin <= 7){ //AFRL only contain pin 0 to pin 7
-		GPIO_WritePin(TXPin, portName, AFRL, AF7);
-		GPIO_WritePin(RXPin, portName, AFRL, AF7);
-	}
+	GPIO_WritePin(TXPin, portName, afrRegTX, AF7);
+	GPIO_WritePin(RXPin, portName, afrRegRX, AF7);
 
-	else{ //AFRH only contain pin 8 to 15
-		GPIO_WritePin(TXPin, portName, AFRH, AF7);
-		GPIO_WritePin(RXPin, portName, AFRH, AF7);
-	}
+//	uint32_t *GPIOB_AFRL = (uint32_t *)(0x40020420);
+//	*GPIOB_AFRL &= ~(0xff << 24);
+//	*GPIOB_AFRL |= (7 << 24) | (7 << 28);
+
 
 	/*
 	 * CONFIG UART
