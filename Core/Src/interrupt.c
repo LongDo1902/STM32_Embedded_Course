@@ -4,10 +4,7 @@
  *  Created on: Apr 25, 2025
  *      Author: dobao
  */
-#include <stdint.h>
 
-#include "registerAddress.h"
-#include "gpio_write_read.h"
 #include "interrupt.h"
 
 /*

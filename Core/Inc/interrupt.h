@@ -8,6 +8,10 @@
 #ifndef INC_INTERRUPT_H_
 #define INC_INTERRUPT_H_
 
+#include <stdint.h>
+#include "registerAddress.h"
+#include "gpio_write_read.h"
+
 typedef enum {
 	my_EXTI_TRIGGER_RISING,
 	my_EXTI_TRIGGER_FALLING,

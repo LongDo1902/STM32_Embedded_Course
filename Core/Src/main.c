@@ -28,14 +28,16 @@ int main(void){
 //	LED_Red_Init();
 //	LED_Orange_Init();
 
-	buttonInit(0, my_GPIOA);
+//	buttonInit(0, my_GPIOA);
 
 //	EXTI_TriggerConfig(0, my_EXTI_TRIGGER_BOTH); //Trigger interrupt for rising and falling
 //	EXTI_Init(0, NVIC_ISER0, EXTI0);
 //	EXTI_Offset_Init(desiredOffsetAddr);
 //	user_EXTI_IRQHandler(EXTIFunction, 0x58);
 
-	UART_Init(my_GPIO_PIN_6, my_GPIO_PIN_7, my_GPIOB, my_UART1, 9600, PARITY_ODD, WORDLENGTH_9B);
+//	UART_Init(my_GPIO_PIN_6, my_GPIO_PIN_7, my_GPIOB, my_UART1, 9600, PARITY_ODD, WORDLENGTH_9B);
+	SPI_GPIO_Init(my_SPI1, my_GPIO_PIN_5, my_GPIOA, my_GPIO_PIN_7, my_GPIOA, my_GPIO_PIN_6, my_GPIOA);
+	SPI_basicConfigInit(my_SPI1, STM32_MASTER, ENABLE, FPCLK_DIV16, SOFTWARE_SLAVE_ENABLE);
 
 	while(1){
 //		my_UART_Transmit(my_UART1, 'b');

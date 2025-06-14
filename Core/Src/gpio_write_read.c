@@ -8,6 +8,23 @@
 #include "gpio_write_read.h"
 
 /*
+ * Helper function to flexible enable GPIO clock
+ */
+void Enable_GPIO_Clock(GPIO_PortName_t port){
+	switch(port){
+		case my_GPIOA: __HAL_RCC_GPIOA_CLK_ENABLE(); break;
+		case my_GPIOB: __HAL_RCC_GPIOB_CLK_ENABLE(); break;
+		case my_GPIOC: __HAL_RCC_GPIOC_CLK_ENABLE(); break;
+		case my_GPIOD: __HAL_RCC_GPIOD_CLK_ENABLE(); break;
+		case my_GPIOE: __HAL_RCC_GPIOE_CLK_ENABLE(); break;
+		case my_GPIOH: __HAL_RCC_GPIOH_CLK_ENABLE(); break;
+		default: return;
+	}
+}
+
+
+
+/*
  * Helper function to write bit to a pin to a GPIO for general purposes
  * @param 	port	my_GPIOA if it is port A
  * @param 	pinNum	pin number write my_GPIO_PIN_1 if pin is 1
@@ -227,103 +244,6 @@ void WriteEXTI(uint8_t bitPosition, EXTI_Mode_t mode, GPIO_State_t state){
 
 
 /*
- * Helper function to write bit to pins to config UART
- * @param	bitPosition		bit location that you want to write
- * @param	userUARTx		write my_UART1 if want to write UART1
- * @param	mode			different UART mode registers
- * @param	state			write set for 1, reset for 0
- */
-void WriteUART(uint8_t bitPosition, UART_Name_t userUARTx, UART_Mode_t mode, uint32_t value){
-	UART_Register_Offset_t* UARTx;
-	switch(userUARTx){
-		case my_UART1: UARTx = UART1_REG; break;
-		case my_UART2: UARTx = UART2_REG; break;
-		case my_UART6: UARTx = UART6_REG; break;
-		default: return;
-	}
-
-	volatile uint32_t* reg;
-	switch(mode){
-		case DR: reg = &UARTx -> DR; break;
-		case BRR: reg = &UARTx -> BRR; break;
-		case CR1: reg = &UARTx -> CR1; break;
-		case CR2: reg = &UARTx -> CR2; break;
-		case CR3: reg = &UARTx -> CR3; break;
-		case GTPR: reg = &UARTx -> GTPR; break;
-		default: return;
-	}
-
-	//Auto detect bitwidth based on the "value" length
-	uint8_t bitWidth = 0;
-	uint32_t temp = value;
-	while(temp > 0){
-		bitWidth++; //Increment the bidWidth by one when ever temp > 0
-		temp = temp >> 1; //Shift the temp to the right by 1
-		//temp >>= 1;
-	}
-
-	if(value == 0 && bitWidth == 0) bitWidth = 1; //Allowing clearing bits
-
-	//Prevent overflow
-	if (bitPosition + bitWidth > 32) return;
-
-	//Mask off the old bit and OR with new value
-	uint32_t mask = ((1U << bitWidth) - 1U) << bitPosition;
-	uint32_t shiftedValue = (value << bitPosition) & mask;
-	*reg = (*reg & ~mask) | shiftedValue;
-}
-
-
-
-/*
- * Reads the status of a specific bit from a UART peripheral register.
- *
- *  @param	bitPosition	Bit position to read (0-31).
- *  @param	userUARTx	UART peripheral to access (e.g., my_UART1, my_UART2, my_UART6).
- *  @param	mode		UART register to read from (e.g., SR, DR, CR1, etc.).
- *
- * Returns:
- *  	1 if the specified bit is set (bit = 1).
- *  	0 if the specified bit is cleared (bit = 0).
- *  	-1 if an invalid UART peripheral or register mode is selected.
- */
-char readUART(uint8_t bitPosition, UART_Name_t userUARTx, UART_Mode_t mode){
-	UART_Register_Offset_t* UARTx;
-	switch(userUARTx){
-		case my_UART1: UARTx = UART1_REG; break;
-		case my_UART2: UARTx = UART2_REG; break;
-		case my_UART6: UARTx = UART6_REG; break;
-		default: return -1; //return an error value
-	}
-
-	volatile uint32_t* reg;
-	switch(mode){
-		case SR: reg = &UARTx -> SR; break; //R
-		case DR: reg = &UARTx -> DR; break; //RW
-		case BRR: reg = &UARTx -> BRR; break; //RW
-		case CR1: reg = &UARTx -> CR1; break; //RW
-		case CR2: reg = &UARTx -> CR2; break; //RW
-		case CR3: reg = &UARTx -> CR3; break; //RW
-		case GTPR: reg = &UARTx -> GTPR; break; //RW
-		default: return -1;
-	}
-
-	//Different mode has different behavior
-	if (mode == DR){
-		return (char)(*reg & 0xFF);
-	}
-
-	else{
-		if(((*reg) >> bitPosition) & 0x1){
-			return 1;
-		} else{
-			return 0;
-		}
-	}
-}
-
-
-/*
  * @brief	Writes a value to a specific bit field within a selected FLASH register
  * 			Automatically calculates the bitWidth based on the given value.
  * 			Safely handles reserved bitPositions and prevents overflow
@@ -466,55 +386,3 @@ char readFLASH(uint8_t bitPosition, Flash_IntF_Mode_t mode){
 	uint8_t bit = (value >> bitPosition) & 0x1;
 	return bit;
 }
-
-/*
- *  @brief	This function configures bit to SPIx's mode
- *
- *  @param	bitPosition		bit location that you want to write
- *  @param	userSPIx		write my_SPI1 when you want to config SPI1
- *  @param	mode			choose specific SPI register to write bit
- *  @param	value			any value that < 32 bits
- */
-void WriteSPI(uint8_t bitPosition, SPI_Name_t userSPIx, SPI_Mode_t mode, uint32_t value){
-	SPI_Register_Offset_t* SPIx;
-
-	switch(userSPIx){
-		case my_SPI1: SPIx = SPI1_REG; break;
-		case my_SPI2: SPIx = SPI2_REG; break;
-		case my_SPI3: SPIx = SPI3_REG; break;
-		case my_SPI4: SPIx = SPI4_REG; break;
-		case my_SPI5: SPIx = SPI5_REG; break;
-		default: return;
-	}
-
-	volatile uint32_t* reg;
-	switch(mode){
-		case SPI_CR1: reg = &SPIx -> SPI_CR1; break;
-		case SPI_CR2: reg = &SPIx -> SPI_CR2; break;
-		case SPI_SR: reg = &SPIx -> SPI_SR; break;
-		case SPI_DR: reg = &SPIx -> SPI_DR; break;
-		case SPI_CRC: reg = &SPIx -> SPI_CRC; break;
-		case SPI_RXCRCR: reg = &SPIx -> SPI_RXCRCR; break;
-		case SPI_TXCRCR: reg = &SPIx -> SPI_TXCRCR; break;
-		case SPI_I2SCFGR: reg = &SPIx -> SPI_I2SCFGR; break;
-		case SPI_I2SPR: reg = &SPIx -> SPI_I2SPR; break;
-		default: return;
-	}
-
-	uint32_t bitWidth = 0;
-	uint32_t temp = value;
-
-	//Auto detect bitwidth based on the "value" length
-	while(temp > 0){
-		bitWidth++; //Increment bitWidth by 1 when temp > 0
-		temp = temp >> 1;
-	}
-	if(value == 0 && bitWidth == 0) bitWidth = 1;
-	if(bitPosition + bitWidth > 32) return; //prevent overflow
-
-	//Mask off the old bit and or with the new bit
-	uint32_t mask = ((1U << bitWidth) - 1U) << bitPosition;
-	uint32_t shiftedValue = (value << bitPosition) & mask;
-	*reg = (*reg & ~mask) | shiftedValue;
-}
-

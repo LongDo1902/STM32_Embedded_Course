@@ -6,6 +6,7 @@
  */
 #include "uart.h"
 
+
 /*
  * UART Initialize in general
  */
@@ -166,3 +167,99 @@ void my_UART_Transmit(UART_Name_t UARTx, uint8_t inputData){
 }
 
 
+
+/*
+ * Helper function to write bit to pins to config UART
+ * @param	bitPosition		bit location that you want to write
+ * @param	userUARTx		write my_UART1 if want to write UART1
+ * @param	mode			different UART mode registers
+ * @param	state			write set for 1, reset for 0
+ */
+void WriteUART(uint8_t bitPosition, UART_Name_t userUARTx, UART_Mode_t mode, uint32_t value){
+	UART_Register_Offset_t* UARTx;
+	switch(userUARTx){
+		case my_UART1: UARTx = UART1_REG; break;
+		case my_UART2: UARTx = UART2_REG; break;
+		case my_UART6: UARTx = UART6_REG; break;
+		default: return;
+	}
+
+	volatile uint32_t* reg;
+	switch(mode){
+		case DR: reg = &UARTx -> DR; break;
+		case BRR: reg = &UARTx -> BRR; break;
+		case CR1: reg = &UARTx -> CR1; break;
+		case CR2: reg = &UARTx -> CR2; break;
+		case CR3: reg = &UARTx -> CR3; break;
+		case GTPR: reg = &UARTx -> GTPR; break;
+		default: return;
+	}
+
+	//Auto detect bitwidth based on the "value" length
+	uint8_t bitWidth = 0;
+	uint32_t temp = value;
+	while(temp > 0){
+		bitWidth++; //Increment the bidWidth by one when ever temp > 0
+		temp = temp >> 1; //Shift the temp to the right by 1
+		//temp >>= 1;
+	}
+
+	if(value == 0 && bitWidth == 0) bitWidth = 1; //Allowing clearing bits
+
+	//Prevent overflow
+	if (bitPosition + bitWidth > 32) return;
+
+	//Mask off the old bit and OR with new value
+	uint32_t mask = ((1U << bitWidth) - 1U) << bitPosition;
+	uint32_t shiftedValue = (value << bitPosition) & mask;
+	*reg = (*reg & ~mask) | shiftedValue;
+}
+
+
+
+/*
+ * Reads the status of a specific bit from a UART peripheral register.
+ *
+ *  @param	bitPosition	Bit position to read (0-31).
+ *  @param	userUARTx	UART peripheral to access (e.g., my_UART1, my_UART2, my_UART6).
+ *  @param	mode		UART register to read from (e.g., SR, DR, CR1, etc.).
+ *
+ * Returns:
+ *  	1 if the specified bit is set (bit = 1).
+ *  	0 if the specified bit is cleared (bit = 0).
+ *  	-1 if an invalid UART peripheral or register mode is selected.
+ */
+char readUART(uint8_t bitPosition, UART_Name_t userUARTx, UART_Mode_t mode){
+	UART_Register_Offset_t* UARTx;
+	switch(userUARTx){
+		case my_UART1: UARTx = UART1_REG; break;
+		case my_UART2: UARTx = UART2_REG; break;
+		case my_UART6: UARTx = UART6_REG; break;
+		default: return -1; //return an error value
+	}
+
+	volatile uint32_t* reg;
+	switch(mode){
+		case SR: reg = &UARTx -> SR; break; //R
+		case DR: reg = &UARTx -> DR; break; //RW
+		case BRR: reg = &UARTx -> BRR; break; //RW
+		case CR1: reg = &UARTx -> CR1; break; //RW
+		case CR2: reg = &UARTx -> CR2; break; //RW
+		case CR3: reg = &UARTx -> CR3; break; //RW
+		case GTPR: reg = &UARTx -> GTPR; break; //RW
+		default: return -1;
+	}
+
+	//Different mode has different behavior
+	if (mode == DR){
+		return (char)(*reg & 0xFF);
+	}
+
+	else{
+		if(((*reg) >> bitPosition) & 0x1){
+			return 1;
+		} else{
+			return 0;
+		}
+	}
+}
