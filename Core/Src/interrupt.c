@@ -35,10 +35,10 @@ uint32_t* global_desiredOffsetAddr;
  */
 void EXTI_TriggerConfig(char bitPosition, EXTI_Trigger_t triggerMode){
 	if(triggerMode == my_EXTI_TRIGGER_RISING || triggerMode == my_EXTI_TRIGGER_BOTH){
-		GPIO_WriteEXTI(bitPosition, RTSR, my_GPIO_PIN_SET); //Rising Edge Reg Enable
+		WriteEXTI(bitPosition, RTSR, my_GPIO_PIN_SET); //Rising Edge Reg Enable
 	}
 	if(triggerMode == my_EXTI_TRIGGER_FALLING || triggerMode == my_EXTI_TRIGGER_BOTH){
-		GPIO_WriteEXTI(bitPosition, FTSR, my_GPIO_PIN_SET); //Falling Edge Reg Enable
+		WriteEXTI(bitPosition, FTSR, my_GPIO_PIN_SET); //Falling Edge Reg Enable
 	}
 	else{
 		return;
@@ -64,7 +64,7 @@ void EXTI_TriggerConfig(char bitPosition, EXTI_Trigger_t triggerMode){
  *                     		GPIO pin number but the vector-table index used by NVIC.
  */
 void EXTI_Init(char bitPosition, volatile uint32_t* NVIC_ISERx, IQRn_User_t EXTIx){
-	GPIO_WriteEXTI(bitPosition, IMR, my_GPIO_PIN_SET);  //Interrupt Mask Reg Enable
+	WriteEXTI(bitPosition, IMR, my_GPIO_PIN_SET);  //Interrupt Mask Reg Enable
 	*NVIC_ISERx |= (1 << EXTIx); //Enable NVIC IRQ
 }
 

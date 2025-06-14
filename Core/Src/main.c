@@ -17,7 +17,7 @@ void EXTIFunction(){
 	else{
 		LED_Control(LED_Green, 0);
 	}
-	GPIO_WriteEXTI(0, PR, my_GPIO_PIN_SET); //Clear the flag
+	WriteEXTI(0, PR, my_GPIO_PIN_SET); //Clear the flag
 }
 
 
@@ -28,8 +28,8 @@ int main(void){
 //	LED_Red_Init();
 //	LED_Orange_Init();
 
-//	buttonInit(0, my_GPIOA);
-//
+	buttonInit(0, my_GPIOA);
+
 //	EXTI_TriggerConfig(0, my_EXTI_TRIGGER_BOTH); //Trigger interrupt for rising and falling
 //	EXTI_Init(0, NVIC_ISER0, EXTI0);
 //	EXTI_Offset_Init(desiredOffsetAddr);
@@ -38,14 +38,13 @@ int main(void){
 	UART_Init(my_GPIO_PIN_6, my_GPIO_PIN_7, my_GPIOB, my_UART1, 9600, PARITY_ODD, WORDLENGTH_9B);
 
 	while(1){
-		my_UART_Transmit(my_UART1, 'b');
-		if (my_UART_Receive(my_UART1) == 'a'){
-			LED_Control(LED_Red, 1);
-		} else{
-			LED_Control(LED_Red, 0);
-		}
+//		my_UART_Transmit(my_UART1, 'b');
+//		if (my_UART_Receive(my_UART1) == 'a'){
+//			LED_Control(LED_Red, 1);
+//		} else{
+//			LED_Control(LED_Red, 0);
+//		}
 
-////	my_UART_Transmit(my_UART1, 'a');
 //		LED_Control(LED_Red, 1);
 //		HAL_Delay(LED_Delay);
 //		LED_Control(LED_Red, 0);

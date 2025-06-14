@@ -5,12 +5,7 @@
  *      Author: dobao
  */
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
 #include "gpio_write_read.h"
-#include "registerAddress.h"
-
 
 /*
  * Helper function to write bit to a pin to a GPIO for general purposes
@@ -98,6 +93,51 @@ void GPIO_WritePin(GPIO_Pin_t pinNum, GPIO_PortName_t port, GPIO_Mode_t mode, GP
 }
 
 
+
+/*
+ * Helper function to read the pin's status
+ * 	@param
+ * 	@param
+ *
+ * 	returns:
+ *		1 if the specified bit is set (bit = 1)
+ *		0 if the soecified bit is cleared (bit = 0)
+ *		-1 if an invalid port/pin is selected or register mode is selected
+ */
+char readPin(uint8_t bitPosition, GPIO_PortName_t port, GPIO_Mode_t mode){
+	//Validate bit position (only 0 - 15 are valid for GPIO pins)
+	if(bitPosition > 15) return -1;
+
+	//Create a pointer GPIOx which has connection to GPIO_Register_Offset_t
+	GPIO_Register_Offset_t* GPIOx;
+
+	switch(port){
+		case my_GPIOA: GPIOx = GPIOA_REG; break;
+		case my_GPIOB: GPIOx = GPIOB_REG; break;
+		case my_GPIOC: GPIOx = GPIOC_REG; break;
+		case my_GPIOD: GPIOx = GPIOD_REG; break;
+		case my_GPIOE: GPIOx = GPIOE_REG; break;
+		case my_GPIOH: GPIOx = GPIOH_REG; break;
+		default: return -1; //Invalid port
+	}
+
+	volatile uint32_t* reg;
+	switch(mode){
+		case MODER: 	reg = &GPIOx -> MODER; 	break;		//RW
+		case OTYPER: 	reg = &GPIOx -> OTYPER; break;		//RW
+		case OSPEEDR: 	reg = &GPIOx -> OSPEEDR; break;		//RW
+		case PUPDR: 	reg = &GPIOx -> PUPDR; break;		//RW
+		case IDR: 		reg = &GPIOx -> IDR; break;			//R
+		case ODR:		reg = &GPIOx -> ODR; break;			//RW
+		default: return -1; //Invalid port
+	}
+
+	//Always read the full register and mask the bit you need
+	return ((*reg >> bitPosition) & 0x1);
+}
+
+
+
 /*
  * @brief Locks the configuration of a specific GPIO pin.
  *        Once locked, the pin's mode, output type, speed, pull-up/down,
@@ -146,7 +186,7 @@ bool GPIO_LockPin(GPIO_Pin_t pinNum, GPIO_PortName_t port){
  *
  * @Info: See gpio_write_read.h
  */
-void GPIO_WriteEXTI(uint8_t bitPosition, EXTI_Mode_t mode, GPIO_State_t state){
+void WriteEXTI(uint8_t bitPosition, EXTI_Mode_t mode, GPIO_State_t state){
 	volatile uint32_t *reg; //A pointer to store the address and access to the memory space at that address
 	uint32_t bitShift = bitPosition; //Position that we want to wrote the value (bit) to
 
@@ -193,7 +233,7 @@ void GPIO_WriteEXTI(uint8_t bitPosition, EXTI_Mode_t mode, GPIO_State_t state){
  * @param	mode			different UART mode registers
  * @param	state			write set for 1, reset for 0
  */
-void GPIO_WriteUART(uint8_t bitPosition, UART_Name_t userUARTx, UART_Mode_t mode, uint32_t value){
+void WriteUART(uint8_t bitPosition, UART_Name_t userUARTx, UART_Mode_t mode, uint32_t value){
 	UART_Register_Offset_t* UARTx;
 	switch(userUARTx){
 		case my_UART1: UARTx = UART1_REG; break;
@@ -219,61 +259,18 @@ void GPIO_WriteUART(uint8_t bitPosition, UART_Name_t userUARTx, UART_Mode_t mode
 	while(temp > 0){
 		bitWidth++; //Increment the bidWidth by one when ever temp > 0
 		temp = temp >> 1; //Shift the temp to the right by 1
+		//temp >>= 1;
 	}
 
+	if(value == 0 && bitWidth == 0) bitWidth = 1; //Allowing clearing bits
+
 	//Prevent overflow
-	if (bitPosition + bitWidth > 32){
-		return;
-	}
+	if (bitPosition + bitWidth > 32) return;
 
 	//Mask off the old bit and OR with new value
 	uint32_t mask = ((1U << bitWidth) - 1U) << bitPosition;
 	uint32_t shiftedValue = (value << bitPosition) & mask;
 	*reg = (*reg & ~mask) | shiftedValue;
-}
-
-
-
-/*
- * Helper function to read the pin's status
- * 	@param
- * 	@param
- *
- * 	returns:
- *		1 if the specified bit is set (bit = 1)
- *		0 if the soecified bit is cleared (bit = 0)
- *		-1 if an invalid port/pin is selected or register mode is selected
- */
-char readPin(uint8_t bitPosition, GPIO_PortName_t port, GPIO_Mode_t mode){
-	//Validate bit position (only 0 - 15 are valid for GPIO pins)
-	if(bitPosition > 15) return -1;
-
-	//Create a pointer GPIOx which has connection to GPIO_Register_Offset_t
-	GPIO_Register_Offset_t* GPIOx;
-
-	switch(port){
-		case my_GPIOA: GPIOx = GPIOA_REG; break;
-		case my_GPIOB: GPIOx = GPIOB_REG; break;
-		case my_GPIOC: GPIOx = GPIOC_REG; break;
-		case my_GPIOD: GPIOx = GPIOD_REG; break;
-		case my_GPIOE: GPIOx = GPIOE_REG; break;
-		case my_GPIOH: GPIOx = GPIOH_REG; break;
-		default: return -1; //Invalid port
-	}
-
-	volatile uint32_t* reg;
-	switch(mode){
-		case MODER: 	reg = &GPIOx -> MODER; 	break;		//RW
-		case OTYPER: 	reg = &GPIOx -> OTYPER; break;		//RW
-		case OSPEEDR: 	reg = &GPIOx -> OSPEEDR; break;		//RW
-		case PUPDR: 	reg = &GPIOx -> PUPDR; break;		//RW
-		case IDR: 		reg = &GPIOx -> IDR; break;			//R
-		case ODR:		reg = &GPIOx -> ODR; break;			//RW
-		default: return -1; //Invalid port
-	}
-
-	//Always read the full register and mask the bit you need
-	return ((*reg >> bitPosition) & 0x1);
 }
 
 
@@ -335,7 +332,7 @@ char readUART(uint8_t bitPosition, UART_Name_t userUARTx, UART_Mode_t mode){
  * 	@param 	mode			Enum indicating which FLASH register to write to
  * 	@param	value			Data to be written; bit width is inferred automatically
  */
-void GPIO_WriteFlash(uint8_t bitPosition, Flash_IntF_Mode_t mode, uint32_t value){
+void WriteFlash(uint8_t bitPosition, Flash_IntF_Mode_t mode, uint32_t value){
 	//Get the case address of the FLASH interface register map
 	Flash_IntF_Register_Offset_t* flashReg = FLASH_REG;
 
@@ -468,5 +465,56 @@ char readFLASH(uint8_t bitPosition, Flash_IntF_Mode_t mode){
 	uint32_t value = *reg; //Access to the memory space/content in reg pointer
 	uint8_t bit = (value >> bitPosition) & 0x1;
 	return bit;
+}
+
+/*
+ *  @brief	This function configures bit to SPIx's mode
+ *
+ *  @param	bitPosition		bit location that you want to write
+ *  @param	userSPIx		write my_SPI1 when you want to config SPI1
+ *  @param	mode			choose specific SPI register to write bit
+ *  @param	value			any value that < 32 bits
+ */
+void WriteSPI(uint8_t bitPosition, SPI_Name_t userSPIx, SPI_Mode_t mode, uint32_t value){
+	SPI_Register_Offset_t* SPIx;
+
+	switch(userSPIx){
+		case my_SPI1: SPIx = SPI1_REG; break;
+		case my_SPI2: SPIx = SPI2_REG; break;
+		case my_SPI3: SPIx = SPI3_REG; break;
+		case my_SPI4: SPIx = SPI4_REG; break;
+		case my_SPI5: SPIx = SPI5_REG; break;
+		default: return;
+	}
+
+	volatile uint32_t* reg;
+	switch(mode){
+		case SPI_CR1: reg = &SPIx -> SPI_CR1; break;
+		case SPI_CR2: reg = &SPIx -> SPI_CR2; break;
+		case SPI_SR: reg = &SPIx -> SPI_SR; break;
+		case SPI_DR: reg = &SPIx -> SPI_DR; break;
+		case SPI_CRC: reg = &SPIx -> SPI_CRC; break;
+		case SPI_RXCRCR: reg = &SPIx -> SPI_RXCRCR; break;
+		case SPI_TXCRCR: reg = &SPIx -> SPI_TXCRCR; break;
+		case SPI_I2SCFGR: reg = &SPIx -> SPI_I2SCFGR; break;
+		case SPI_I2SPR: reg = &SPIx -> SPI_I2SPR; break;
+		default: return;
+	}
+
+	uint32_t bitWidth = 0;
+	uint32_t temp = value;
+
+	//Auto detect bitwidth based on the "value" length
+	while(temp > 0){
+		bitWidth++; //Increment bitWidth by 1 when temp > 0
+		temp = temp >> 1;
+	}
+	if(value == 0 && bitWidth == 0) bitWidth = 1;
+	if(bitPosition + bitWidth > 32) return; //prevent overflow
+
+	//Mask off the old bit and or with the new bit
+	uint32_t mask = ((1U << bitWidth) - 1U) << bitPosition;
+	uint32_t shiftedValue = (value << bitPosition) & mask;
+	*reg = (*reg & ~mask) | shiftedValue;
 }
 

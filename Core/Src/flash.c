@@ -15,8 +15,8 @@
  */
 void Flash_Sector_Erase(int sectorNum){
 	while (readFLASH(16, FLASH_SR) & 0x1 == 1); //Stay in this loop when there is on going Flash mem operation
-	GPIO_WriteFlash(1, FLASH_CR, 1); //Sector erase activate
-	GPIO_WriteFlash(3, FLASH_CR, sectorNum); //
+	WriteFlash(1, FLASH_CR, 1); //Sector erase activate
+	WriteFlash(3, FLASH_CR, sectorNum); //
 
 }
 

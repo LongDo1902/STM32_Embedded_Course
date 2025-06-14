@@ -4,11 +4,7 @@
  *  Created on: Mar 28, 2025
  *      Author: dobao
  */
-#include <stdio.h>
-
-#include "registerAddress.h"
 #include "leds.h"
-#include "stm32f4xx_hal.h"
 
 /*
  * Initialize LEDs

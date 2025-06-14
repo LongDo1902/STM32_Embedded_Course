@@ -8,7 +8,13 @@
 #ifndef INC_UART_H_
 #define INC_UART_H_
 
+#include <stdio.h>
+#include <stdint.h>
+#include <math.h>
+
+#include "stm32f4xx_hal.h"
 #include "gpio_write_read.h"
+#include "registerAddress.h"
 
 /*
  * Function Declarations

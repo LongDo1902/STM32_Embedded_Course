@@ -7,8 +7,11 @@
 
 #ifndef INC_GPIO_WRITE_READ_H_
 #define INC_GPIO_WRITE_READ_H_
+
+#include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "registerAddress.h"
 
 /*
  * Collections of pins 0 to 15
@@ -78,7 +81,8 @@ typedef enum{
 /*
  * Collections of GPIO Offset Register Name
  */
-typedef enum{MODER, OTYPER, OSPEEDR, PUPDR, IDR, ODR, BSRR, LCKR, AFRL, AFRH}GPIO_Mode_t;
+typedef enum{MODER, OTYPER, OSPEEDR, PUPDR, IDR, ODR,
+			BSRR, LCKR, AFRL, AFRH}GPIO_Mode_t;
 
 /*
  * Collections of EXTI Offset Register Name
@@ -93,6 +97,19 @@ typedef enum{SR, DR, BRR, CR1, CR2, CR3, GTPR}UART_Mode_t;
 /*
  * Collections of SPI Offset Register Name
  */
+typedef enum{SPI_CR1, SPI_CR2, SPI_SR, SPI_DR, SPI_CRC,
+			SPI_RXCRCR, SPI_TXCRCR, SPI_I2SCFGR, SPI_I2SPR}SPI_Mode_t;
+
+/*
+ * Collections of SPIx name
+ */
+typedef enum{
+	my_SPI1,
+	my_SPI2,
+	my_SPI3,
+	my_SPI4,
+	my_SPI5
+}SPI_Name_t;
 
 /*
  * Collections of UARTx name
@@ -123,7 +140,8 @@ typedef enum{
 /*
  * Collection of Flash Interface Register Name
  */
-typedef enum{FLASH_ACR, FLASH_KEYR, FLASH_OPTKEYR, FLASH_SR, FLASH_CR, FLASH_OPTCR} Flash_IntF_Mode_t;
+typedef enum{FLASH_ACR, FLASH_KEYR, FLASH_OPTKEYR,
+			FLASH_SR, FLASH_CR, FLASH_OPTCR} Flash_IntF_Mode_t;
 ////////////////END OF DIFFERENT MODES REG////////////////
 
 
@@ -136,13 +154,15 @@ void GPIO_WritePin (GPIO_Pin_t pinNum,
 					GPIO_State_t state);
 
 bool GPIO_LockPin(GPIO_Pin_t pinNum,
-				  GPIO_PortName_t port);
+				  GPIO_PortName_t port);//HAVE NOT CHECKED YET!!!!!!!!!
 
-void GPIO_WriteEXTI(uint8_t bitPosition,
+
+void WriteEXTI(uint8_t bitPosition,
 					EXTI_Mode_t mode,
 					GPIO_State_t state);
 
-void GPIO_WriteUART(uint8_t bitPosition,
+
+void WriteUART(uint8_t bitPosition,
 					UART_Name_t userUARTx,
 					UART_Mode_t mode,
 					uint32_t value);
@@ -151,14 +171,19 @@ char readUART(uint8_t bitPosition,
 			  UART_Name_t userUARTx,
 			  UART_Mode_t mode);
 
+
 char readPin(uint8_t bitPosition,
 			GPIO_PortName_t port,
 			GPIO_Mode_t mode);
 
-void GPIO_WriteFlash(uint8_t bitPosition,
+
+void WriteFlash(uint8_t bitPosition,
 					Flash_IntF_Mode_t mode,
 					uint32_t value);
 
 char readFLASH(uint8_t bitPosition, Flash_IntF_Mode_t mode);
+
+void WriteSPI(uint8_t bitPosition, SPI_Name_t userSPIx,
+			SPI_Mode_t mode, uint32_t value);
 
 #endif /* INC_GPIO_WRITE_READ_H_ */

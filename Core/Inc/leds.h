@@ -6,11 +6,13 @@
  */
 
 #ifndef INC_LEDS_H_
-#define INC_LEDS_H_
+#define INC_LEDS_H
 
-#include <registerAddress.h>
+#include <stdio.h>
+#include "registerAddress.h"
 #include "stm32f4xx_hal.h"
 #include "gpio_write_read.h"
+
 
 /*
  * Collections of LED pins which associated with its color

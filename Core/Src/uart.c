@@ -4,15 +4,7 @@
  *  Created on: Apr 23, 2025
  *      Author: dobao
  */
-#include <stdio.h>
-#include <stdint.h>
-#include <math.h>
-
-#include "stm32f4xx_hal.h"
 #include "uart.h"
-#include "gpio_write_read.h"
-#include "registerAddress.h"
-
 
 /*
  * UART Initialize in general
@@ -83,26 +75,26 @@ void UART_Init(GPIO_Pin_t TXPin,
 	/*
 	 * Write calculated full values to BRR
 	 */
-	GPIO_WriteUART(0, UARTx, BRR, fullBRR);
+	WriteUART(0, UARTx, BRR, fullBRR);
 
 	/*
 	 * Enable TX and RX mode
 	 */
-	GPIO_WriteUART(2, UARTx, CR1, 1); //Receiver is enabled and begins searching for a start bit
-	GPIO_WriteUART(3, UARTx, CR1, 1); //Transmitter enable
+	WriteUART(2, UARTx, CR1, 1); //Receiver is enabled and begins searching for a start bit
+	WriteUART(3, UARTx, CR1, 1); //Transmitter enable
 
 	/*
 	 * Auto select parity control
 	 */
 	if(parity == PARITY_NONE){
-		GPIO_WriteUART(10, UARTx, CR1, 0); //PCE = 0
+		WriteUART(10, UARTx, CR1, 0); //PCE = 0
 	}else{
-		GPIO_WriteUART(10, UARTx, CR1, 1); //PCE = 1
+		WriteUART(10, UARTx, CR1, 1); //PCE = 1
 
 		if(parity == PARITY_EVEN){
-			GPIO_WriteUART(9, UARTx, CR1, 0); //PS = 0 for EVEN
+			WriteUART(9, UARTx, CR1, 0); //PS = 0 for EVEN
 		} else{
-			GPIO_WriteUART(9, UARTx, CR1, 1); //PS = 1 for ODD
+			WriteUART(9, UARTx, CR1, 1); //PS = 1 for ODD
 		}
 	}
 
@@ -110,14 +102,14 @@ void UART_Init(GPIO_Pin_t TXPin,
 	 * Auto select the data frame size
 	 */
 	if (wordLength == WORDLENGTH_8B){
-		GPIO_WriteUART(12, UARTx, CR1, 0); //Set data frame size as 8 bits
+		WriteUART(12, UARTx, CR1, 0); //Set data frame size as 8 bits
 	}else if (wordLength == WORDLENGTH_9B) {
-		GPIO_WriteUART(12, UARTx, CR1, 1); //Set data frame size as 9 bits
+		WriteUART(12, UARTx, CR1, 1); //Set data frame size as 9 bits
 	}else{
 		return;
 	}
 
-	GPIO_WriteUART(13, UARTx, CR1, 1); //Enable UART
+	WriteUART(13, UARTx, CR1, 1); //Enable UART
 }
 
 
@@ -169,7 +161,7 @@ char my_UART_Receive(UART_Name_t UARTx){
  */
 void my_UART_Transmit(UART_Name_t UARTx, uint8_t inputData){
 	while((readUART(7, UARTx, SR) & 1) == 0);
-	GPIO_WriteUART(0, UARTx, DR, inputData);
+	WriteUART(0, UARTx, DR, inputData);
 	while((readUART(6, UARTx, SR) & 1) == 0);
 }
 
