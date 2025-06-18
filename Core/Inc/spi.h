@@ -110,6 +110,8 @@ void SPI_basicConfigInit(SPI_GPIO_Config_t config,
 char SPI_readReceivedData(SPI_GPIO_Config_t config,
 						  char slaveDeviceAddr);
 
+void SPI_write2Device(SPI_GPIO_Config_t config, char slaveDeviceAddr, char writeValue);
+
 uint16_t readSPI(uint8_t bitPosition, SPI_Name_t userSPIx, SPI_Mode_t mode);
 void writeSPI(uint8_t bitPosition, SPI_Name_t userSPIx, SPI_Mode_t mode, uint32_t value);
 

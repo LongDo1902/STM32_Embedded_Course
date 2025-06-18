@@ -52,6 +52,32 @@ char SPI_readReceivedData(SPI_GPIO_Config_t config,
 
 
 /*
+ *
+ */
+void SPI_write2Device(SPI_GPIO_Config_t config, char slaveDeviceAddr, char writeValue){
+	GPIO_WritePin(config.nssPin, config.nssPort, ODR, my_GPIO_PIN_RESET); //Pull NSS pin low to start communicating
+
+	while((readSPI(7, config.SPIx, SPI_SR) & 1) == 1); //SPI is busy in communicating or TX buffer is not yet empty
+	writeSPI(0, config.SPIx, SPI_DR, slaveDeviceAddr);
+
+	while((readSPI(1, config.SPIx, SPI_SR) & 1) == 0); //Wait until TX buffer is empty
+	while((readSPI(7, config.SPIx, SPI_SR) & 1) == 1); //Wait until SPI is not busy
+	while((readSPI(0, config.SPIx, SPI_SR) & 1) == 0); //Wait until RX buffer is full data
+
+	(void)readSPI(0, config.SPIx, SPI_DR); //Read and discard first received byte (dummy value received)
+
+	while((readSPI(7, config.SPIx, SPI_SR) & 1) == 1); //Wait until SPI is not busy
+	writeSPI(0, config.SPIx, SPI_DR, writeValue); //Send the value that user want to write to the slave
+
+	while((readSPI(1, config.SPIx, SPI_SR) & 1) == 0); //Wait until TX buffer is empty
+	while((readSPI(7, config.SPIx, SPI_SR) & 1) == 1); //Wait until SPI is not busy
+	while((readSPI(0, config.SPIx, SPI_SR) & 1) == 0); //Wait until RX buffer is full data
+
+	GPIO_WritePin(config.nssPin, config.nssPort, ODR, my_GPIO_PIN_SET); //Pull the NSS pin high -> deactivate slave
+}
+
+
+/*
  *  @brief	Initializes the selected SPI peripheral and its SCK, MOSI, MISO pins.
  */
 void SPI_GPIO_Init(SPI_GPIO_Config_t config){

@@ -47,6 +47,9 @@ int main(void){
 	char spiRead1 = SPI_readReceivedData(spiConfig, 0x0F);
 	char spiRead2 = SPI_readReceivedData(spiConfig, 0x20);
 
+	SPI_write2Device(spiConfig, 0x20, 0x0F);
+	spiRead2 = SPI_readReceivedData(spiConfig, 0x20);
+
 	while(1){
 
 	}
