@@ -9,6 +9,7 @@
 #define INC_SPI_H_
 
 #include <stdio.h>
+#include <stdbool.h>
 #include "stm32f4xx_hal.h"
 #include "gpio_write_read.h"
 #include "registerAddress.h"
@@ -60,12 +61,16 @@ typedef enum{
 	STM32_MASTER
 }SPI_MSTR_t; //Master selection
 
+typedef enum {
+	DFF_8BITS,
+	DFF_16BITS
+}SPI_DFF_t; //Data frame format
+
 
 
 /*
  * Function Declarations
  */
-void WriteSPI(uint8_t bitPosition, SPI_Name_t userSPIx, SPI_Mode_t mode, uint32_t value);
 void SPI_sckPin_Init(GPIO_Pin_t sckPin, GPIO_PortName_t sckPort, SPI_Name_t SPIx);
 void SPI_mosiPin_Init(GPIO_Pin_t mosiPin, GPIO_PortName_t mosiPort, SPI_Name_t SPIx);
 void SPI_misoPin_Init(GPIO_Pin_t misoPin, GPIO_PortName_t misoPort, SPI_Name_t SPIx);
@@ -75,8 +80,19 @@ void SPI_GPIO_Init(SPI_Name_t SPIx,
 			  GPIO_Pin_t mosiPin, GPIO_PortName_t mosiPort,
 			  GPIO_Pin_t misoPin, GPIO_PortName_t misoPort);
 
-void SPI_basicConfigInit(SPI_Name_t SPIx, SPI_MSTR_t masterSlaveSel,
-						SPI_Enable_t enableMode, SPI_BaudRate_t baudRateSel,
-						SPI_SSM_t softSlaveEn);
+void SPI_basicConfigInit(SPI_Name_t SPIx,
+						 SPI_MSTR_t masterSlaveSel,
+						 SPI_DFF_t dataFrameSize,
+						 SPI_BaudRate_t baudRateSel,
+						 SPI_SSM_t softSlaveEn,
+						 SPI_Enable_t enableMode);
+
+char SPI_readReceivedData(SPI_Name_t SPIx,
+						  GPIO_Pin_t NSSpin,
+						  GPIO_PortName_t NSSport,
+						  char slaveDeviceAddr);
+
+char readSPI(uint8_t bitPosition, SPI_Name_t userSPIx, SPI_Mode_t mode);
+void WriteSPI(uint8_t bitPosition, SPI_Name_t userSPIx, SPI_Mode_t mode, uint32_t value);
 
 #endif /* INC_SPI_H_ */

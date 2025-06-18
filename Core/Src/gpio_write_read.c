@@ -86,6 +86,12 @@ void GPIO_WritePin(GPIO_Pin_t pinNum, GPIO_PortName_t port, GPIO_Mode_t mode, GP
 			bitShift = pinNum * bitWidth;
 			break;
 
+		case ODR:
+			reg = &GPIOx -> ODR;
+			bitWidth = 1;
+			bitShift = pinNum * bitWidth;
+			break;
+
 		case AFRL:
 			if(pinNum > 7) return; //Invalid pin
 			reg = &GPIOx -> AFRL;

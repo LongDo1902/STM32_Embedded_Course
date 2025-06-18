@@ -24,6 +24,26 @@ void EXTIFunction(){
 int main(void){
 	HAL_Init();
 
+	SPI_GPIO_Init(my_SPI1,
+				  my_GPIO_PIN_5, my_GPIOA, //sckPin and sckPort
+				  my_GPIO_PIN_7, my_GPIOA, //mosiPin and mosiPort
+				  my_GPIO_PIN_6, my_GPIOA); //misoPin and misoPort
+
+	SPI_basicConfigInit(my_SPI1, STM32_MASTER,
+						DFF_8BITS, FPCLK_DIV16,
+						SOFTWARE_SLAVE_ENABLE, SPI_ENABLE);
+
+	char WHOIAM = SPI_readReceivedData(my_SPI1, my_GPIO_PIN_3, my_GPIOE, 0x0F);
+	char modeRead = SPI_readReceivedData(my_SPI1, my_GPIO_PIN_3, my_GPIOE, 0x20);
+	while(1){
+
+	}
+}
+
+
+
+
+
 //	LED_Green_Init();
 //	LED_Red_Init();
 //	LED_Orange_Init();
@@ -36,10 +56,9 @@ int main(void){
 //	user_EXTI_IRQHandler(EXTIFunction, 0x58);
 
 //	UART_Init(my_GPIO_PIN_6, my_GPIO_PIN_7, my_GPIOB, my_UART1, 9600, PARITY_ODD, WORDLENGTH_9B);
-	SPI_GPIO_Init(my_SPI1, my_GPIO_PIN_5, my_GPIOA, my_GPIO_PIN_7, my_GPIOA, my_GPIO_PIN_6, my_GPIOA);
-	SPI_basicConfigInit(my_SPI1, STM32_MASTER, ENABLE, FPCLK_DIV16, SOFTWARE_SLAVE_ENABLE);
 
-	while(1){
+
+
 //		my_UART_Transmit(my_UART1, 'b');
 //		if (my_UART_Receive(my_UART1) == 'a'){
 //			LED_Control(LED_Red, 1);
@@ -51,5 +70,3 @@ int main(void){
 //		HAL_Delay(LED_Delay);
 //		LED_Control(LED_Red, 0);
 //		HAL_Delay(LED_Delay);
-	}
-}

@@ -78,7 +78,7 @@ typedef struct{
 	volatile uint32_t OSPEEDR; 	//0x08 (Output Speed Reg)
 	volatile uint32_t PUPDR;	//0x0C (Pull-up/pull-down Reg)
 	volatile uint32_t IDR;		//0x10 (Input Data Reg)
-	volatile uint32_t ODR;		//0x14 (Output Data Reg)
+	volatile uint32_t ODR ;		//0x14 (Output Data Reg)
 	volatile uint32_t BSRR;		//0x18 (Bit Set/Reset Reg)
 	volatile uint32_t LCKR;		//0x1C (GPIO Port Configuration Lock Register)
 	volatile uint32_t AFRL;		//0x20 (Alternate Function Low Reg)

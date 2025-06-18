@@ -1,11 +1,47 @@
 /*
- * flash.c
+ * spi.c
  *
  *  Created on: Jun 11, 2025
  *      Author: dobao
  */
 
 #include "spi.h"
+
+/*
+ *
+ */
+char SPI_readReceivedData(SPI_Name_t SPIx,
+						  GPIO_Pin_t NSSpin,
+						  GPIO_PortName_t NSSport,
+						  char slaveDeviceAddr){
+
+	Enable_GPIO_Clock(NSSport);
+	GPIO_WritePin(NSSpin, NSSport, MODER, mode_01); //Set this pin as output/
+	GPIO_WritePin(NSSpin, NSSport, ODR, my_GPIO_PIN_RESET); //Pull NSS pin low to activate the slave and begin communication
+
+	while((readSPI(7, SPIx, SPI_SR) & 1) == 1); //SPI is busy in communication or TX buffer is not empty
+	WriteSPI(0, SPIx, SPI_DR, (slaveDeviceAddr | (1 << 7))); //(1 << 7) is refered to L3GD20 gyro for reading mode
+
+	while((readSPI(1, SPIx, SPI_SR) & 1) == 0); //Wait until TX buffer is empty
+	while((readSPI(7, SPIx, SPI_SR) & 1) == 1); //Wait until SPI is not busy
+	while((readSPI(0, SPIx, SPI_SR) & 1) == 0); //Wait until RX buffer is full data
+
+	char data = readSPI(0, SPIx, SPI_DR); //Read and discard first received byte (dummy value received)
+
+	while((readSPI(7, SPIx, SPI_SR) & 1) == 1); //Wait until SPI is not busy
+	WriteSPI(0, SPIx, SPI_DR, 0xFF); //Send dummy byte (0xFF) so the slave can send actual data back
+
+	while((readSPI(1, SPIx, SPI_SR) & 1) == 0); //Wait until TX buffer is empty
+	while((readSPI(7, SPIx, SPI_SR) & 1) == 1); //Wait until SPI is not busy
+	while((readSPI(0, SPIx, SPI_SR) & 1) == 0); //Wait until RX buffer is full data
+
+	data = readSPI(0, SPIx, SPI_DR); //Read actual data
+	GPIO_WritePin(NSSpin, NSSport, ODR, my_GPIO_PIN_SET); //Deactivate the slave, pull NSS pin high again to end communication
+
+	return data;
+}
+
+
 
 /*
  *  @brief	Initializes the selected SPI peripheral and its SCK, MOSI, MISO pins.
@@ -25,6 +61,7 @@ void SPI_GPIO_Init(SPI_Name_t SPIx,
 }
 
 
+
 /*
  * @brief	Initialize the basic configuration of an SPI peripheral
  *
@@ -39,11 +76,15 @@ void SPI_GPIO_Init(SPI_Name_t SPIx,
  * @param	masterSlaveSel		Set device as master or slave (SPI_MSTR_t)
  * @param	enableMode			Enable or disable SPI (SPI_Enable_t)
  * @param	baudRateSel			Baud rate prescaler (SPI_BaudRate_t)
+ * @param	dataFrameSize		Data frame size for transmission/reception (0 for 8 bits and 1 for 16 bits)
  * @param	softSlaveEn 		Software slave management enable/disable (SPI_SSM_t)
  */
-void SPI_basicConfigInit(SPI_Name_t SPIx, SPI_MSTR_t masterSlaveSel,
-						SPI_Enable_t enableMode, SPI_BaudRate_t baudRateSel,
-						SPI_SSM_t softSlaveEn){
+void SPI_basicConfigInit(SPI_Name_t SPIx,
+						 SPI_MSTR_t masterSlaveSel,
+						 SPI_DFF_t dataFrameSize,
+						 SPI_BaudRate_t baudRateSel,
+						 SPI_SSM_t softSlaveEn,
+						 SPI_Enable_t enableMode){
 
 	//Flexible enable SPI clock
 	switch(SPIx){
@@ -56,8 +97,9 @@ void SPI_basicConfigInit(SPI_Name_t SPIx, SPI_MSTR_t masterSlaveSel,
 	}
 
 	WriteSPI(2, SPIx, SPI_CR1, masterSlaveSel); //Set STM32F411VET as master or slave
+	WriteSPI(11, SPIx, SPI_CR1, dataFrameSize); //Set data frame size (must be written before SPI is enabled)
 	WriteSPI(3, SPIx, SPI_CR1, baudRateSel); //Set how fast sckPin can generate (Hz)
-	WriteSPI(9, SPIx, SPI_CR1, softSlaveEn);//Needed if NSS is not physically connected
+	WriteSPI(9, SPIx, SPI_CR1, softSlaveEn); //Needed if NSS is not physically connected
 
 	/*
 	 * bit 8 = 1 -> Simulate NSS being high so that MODF in SR is disabled
@@ -171,8 +213,9 @@ void SPI_misoPin_Init(GPIO_Pin_t misoPin, GPIO_PortName_t misoPort, SPI_Name_t S
  *  @param	value			any value that < 32 bits
  */
 void WriteSPI(uint8_t bitPosition, SPI_Name_t userSPIx, SPI_Mode_t mode, uint32_t value){
-	SPI_Register_Offset_t* SPIx;
+	if(bitPosition > 15) return; //Condition to check false entered bitPosition
 
+	SPI_Register_Offset_t* SPIx;
 	switch(userSPIx){
 		case my_SPI1: SPIx = SPI1_REG; break;
 		case my_SPI2: SPIx = SPI2_REG; break;
@@ -183,16 +226,31 @@ void WriteSPI(uint8_t bitPosition, SPI_Name_t userSPIx, SPI_Mode_t mode, uint32_
 	}
 
 	volatile uint32_t* reg;
+
 	switch(mode){
 		case SPI_CR1: reg = &SPIx -> SPI_CR1; break;
-		case SPI_CR2: reg = &SPIx -> SPI_CR2; break;
-		case SPI_SR: reg = &SPIx -> SPI_SR; break;
+
+		case SPI_CR2:
+//			if(bitPosition == 3 || bitPosition > 7) return; //These bits are reserved
+			reg = &SPIx -> SPI_CR2; break;
+
+		case SPI_SR:
+			if(bitPosition > 9) return; //These bits are reserved
+			reg = &SPIx -> SPI_SR; break;
+
 		case SPI_DR: reg = &SPIx -> SPI_DR; break;
 		case SPI_CRC: reg = &SPIx -> SPI_CRC; break;
 		case SPI_RXCRCR: reg = &SPIx -> SPI_RXCRCR; break;
 		case SPI_TXCRCR: reg = &SPIx -> SPI_TXCRCR; break;
-		case SPI_I2SCFGR: reg = &SPIx -> SPI_I2SCFGR; break;
-		case SPI_I2SPR: reg = &SPIx -> SPI_I2SPR; break;
+
+		case SPI_I2SCFGR:
+			if(bitPosition == 6 || bitPosition > 11) return;
+			reg = &SPIx -> SPI_I2SCFGR; break;
+
+		case SPI_I2SPR:
+			if(bitPosition > 9) return;
+			reg = &SPIx -> SPI_I2SPR; break;
+
 		default: return;
 	}
 
@@ -212,3 +270,93 @@ void WriteSPI(uint8_t bitPosition, SPI_Name_t userSPIx, SPI_Mode_t mode, uint32_
 	uint32_t shiftedValue = (value << bitPosition) & mask;
 	*reg = (*reg & ~mask) | shiftedValue;
 }
+
+
+
+/*
+ * @brief	Helper function reads specific bit fields or full data from SPI peripheral registers.
+ *
+ * @param	bitPosition		Bit position or starting bit to read
+ * @param	userSPIx		Selected SPI peripheral (my_SPI1 -> my_SPI5)
+ * @param	mode			Target SPI register to access (e.g., SPI_CR1, SPI_SR, etc.)
+ *
+ * @return	Register value or bit field. Returns:
+ * 		- 8/16-bits value from SPI_DR based on DFF setting
+ * 		- Specific field value (like baud rate or I2S config)
+ * 		- 1/0 for single-bit fields
+ * 		- (-1) on invalid input or reserved bit access
+ */
+char readSPI(uint8_t bitPosition, SPI_Name_t userSPIx, SPI_Mode_t mode){
+	SPI_Register_Offset_t* SPIx;
+	switch(userSPIx){
+		case my_SPI1: SPIx = SPI1_REG; break;
+		case my_SPI2: SPIx = SPI2_REG; break;
+		case my_SPI3: SPIx = SPI3_REG; break;
+		case my_SPI4: SPIx = SPI4_REG; break;
+		case my_SPI5: SPIx = SPI5_REG; break;
+		default: return -1; //return an error value
+	}
+
+	volatile uint32_t* reg;
+
+	switch(mode){
+		case SPI_CR1: reg = &SPIx -> SPI_CR1; break;
+
+		case SPI_CR2:
+			if(bitPosition == 3 || bitPosition > 7) return -1; //These bits are reserved
+			reg = &SPIx -> SPI_CR2; break;
+
+		case SPI_SR:
+			if(bitPosition > 9) return -1; //These bits are reserved
+			reg = &SPIx -> SPI_SR; break;
+
+		case SPI_DR: reg = &SPIx -> SPI_DR; break;
+		case SPI_CRC: reg = &SPIx -> SPI_CRC; break;
+		case SPI_RXCRCR: reg = &SPIx -> SPI_RXCRCR; break;
+		case SPI_TXCRCR: reg = &SPIx -> SPI_TXCRCR; break;
+
+		case SPI_I2SCFGR:
+			if(bitPosition == 6 || bitPosition > 11) return -1;
+			reg = &SPIx -> SPI_I2SCFGR; break;
+
+		case SPI_I2SPR:
+			if(bitPosition > 9) return -1;
+			reg = &SPIx -> SPI_I2SPR; break;
+
+		default: return -1;
+	}
+
+	/*
+	 * Condition to check if the Data Frame is 8 bits or 16 bits
+	 */
+	uint8_t is16BitFrame = 0; //Default, 8-bits data frame is chosen
+	if(((SPIx -> SPI_CR1) >> 11) & 1) is16BitFrame = 1; //user choose 16-bits data frame
+
+	if(mode == SPI_DR){
+		if(!is16BitFrame) return (uint8_t)(*reg & 0xFF); //Return DR as an 8-bits data
+		else return (uint16_t)(*reg & 0xFFFF); //Return DR as an 16-bits data
+	}
+
+	else if(mode == SPI_CR1 && bitPosition == 3){ //User want to read baud rate value
+		return (*reg >> bitPosition) & 0x7; //0b000000000111
+	}
+
+	else if(mode == SPI_I2SCFGR && bitPosition == 1){
+		return (*reg >> bitPosition) & 0x3; //Read 2-bits DATLEN (data length)
+	}
+
+	else if(mode == SPI_I2SCFGR && bitPosition == 4){
+		return (*reg >> bitPosition) & 0x3; //Read 2 bits I2SSTD
+	}
+
+	else if(mode == SPI_I2SCFGR && bitPosition == 8){
+		return (*reg >> bitPosition) & 0x3; //Read 2bits I2SCFG
+	}
+
+	else{
+		if (((*reg) >> bitPosition) & 0x1)
+			return 1;
+		return 0;
+	}
+}
+
