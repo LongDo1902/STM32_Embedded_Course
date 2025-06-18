@@ -7,8 +7,26 @@
 #include "uart.h"
 #include "spi.h"
 
+
 int LED_Delay = 400; //ms
 uint32_t* desiredOffsetAddr = (uint32_t*)0x20000000;
+
+SPI_GPIO_Config_t spiConfig = {
+	.SPIx = my_SPI1,
+
+	.sckPin = my_GPIO_PIN_5,
+	.sckPort = my_GPIOA,
+
+	.nssPin = my_GPIO_PIN_3,
+	.nssPort = my_GPIOE,
+
+	.mosiPin = my_GPIO_PIN_7,
+	.mosiPort = my_GPIOA,
+
+	.misoPin = my_GPIO_PIN_6,
+	.misoPort = my_GPIOA
+};
+
 
 void EXTIFunction(){
 	if(buttonState()){
@@ -21,20 +39,14 @@ void EXTIFunction(){
 }
 
 
+
 int main(void){
 	HAL_Init();
+	SPI_GPIO_Init(spiConfig);
+	SPI_basicConfigInit(spiConfig, STM32_MASTER, DFF_8BITS, FPCLK_DIV16, SOFTWARE_SLAVE_ENABLE, SPI_ENABLE);
+	char spiRead1 = SPI_readReceivedData(spiConfig, 0x0F);
+	char spiRead2 = SPI_readReceivedData(spiConfig, 0x20);
 
-	SPI_GPIO_Init(my_SPI1,
-				  my_GPIO_PIN_5, my_GPIOA, //sckPin and sckPort
-				  my_GPIO_PIN_7, my_GPIOA, //mosiPin and mosiPort
-				  my_GPIO_PIN_6, my_GPIOA); //misoPin and misoPort
-
-	SPI_basicConfigInit(my_SPI1, STM32_MASTER,
-						DFF_8BITS, FPCLK_DIV16,
-						SOFTWARE_SLAVE_ENABLE, SPI_ENABLE);
-
-	char WHOIAM = SPI_readReceivedData(my_SPI1, my_GPIO_PIN_3, my_GPIOE, 0x0F);
-	char modeRead = SPI_readReceivedData(my_SPI1, my_GPIO_PIN_3, my_GPIOE, 0x20);
 	while(1){
 
 	}

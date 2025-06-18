@@ -7,36 +7,37 @@
 
 #include "spi.h"
 
+
 /*
  *
  */
-char SPI_readReceivedData(SPI_Name_t SPIx,
-						  GPIO_Pin_t NSSpin,
-						  GPIO_PortName_t NSSport,
+char SPI_readReceivedData(SPI_GPIO_Config_t config,
 						  char slaveDeviceAddr){
+	//Parameters
+	const uint8_t READ_FLAG = (1 << 7); //I3G4250 Read Flag (Write 1 to bit 7)
+	const uint8_t DUMMYBYTE = 0xFF;
 
-	Enable_GPIO_Clock(NSSport);
-	GPIO_WritePin(NSSpin, NSSport, MODER, mode_01); //Set this pin as output/
-	GPIO_WritePin(NSSpin, NSSport, ODR, my_GPIO_PIN_RESET); //Pull NSS pin low to activate the slave and begin communication
+	//Ensure NSS GPIO is clocked and configured as output
+	GPIO_WritePin(config.nssPin, config.nssPort, ODR, my_GPIO_PIN_RESET); //Pull NSS pin low to activate the slave and begin communication
 
-	while((readSPI(7, SPIx, SPI_SR) & 1) == 1); //SPI is busy in communication or TX buffer is not empty
-	WriteSPI(0, SPIx, SPI_DR, (slaveDeviceAddr | (1 << 7))); //(1 << 7) is refered to L3GD20 gyro for reading mode
+	while((readSPI(7, config.SPIx, SPI_SR) & 1) == 1); //SPI is busy in communication or TX buffer is not empty
+	WriteSPI(0, config.SPIx, SPI_DR, (slaveDeviceAddr | READ_FLAG)); //(1 << 7) is refered to L3GD20 gyro for reading mode
 
-	while((readSPI(1, SPIx, SPI_SR) & 1) == 0); //Wait until TX buffer is empty
-	while((readSPI(7, SPIx, SPI_SR) & 1) == 1); //Wait until SPI is not busy
-	while((readSPI(0, SPIx, SPI_SR) & 1) == 0); //Wait until RX buffer is full data
+	while((readSPI(1, config.SPIx, SPI_SR) & 1) == 0); //Wait until TX buffer is empty
+	while((readSPI(7, config.SPIx, SPI_SR) & 1) == 1); //Wait until SPI is not busy
+	while((readSPI(0, config.SPIx, SPI_SR) & 1) == 0); //Wait until RX buffer is full data
 
-	char data = readSPI(0, SPIx, SPI_DR); //Read and discard first received byte (dummy value received)
+	char data = readSPI(0, config.SPIx, SPI_DR); //Read and discard first received byte (dummy value received)
 
-	while((readSPI(7, SPIx, SPI_SR) & 1) == 1); //Wait until SPI is not busy
-	WriteSPI(0, SPIx, SPI_DR, 0xFF); //Send dummy byte (0xFF) so the slave can send actual data back
+	while((readSPI(7, config.SPIx, SPI_SR) & 1) == 1); //Wait until SPI is not busy
+	WriteSPI(0, config.SPIx, SPI_DR, DUMMYBYTE); //Send dummy byte (0xFF) so the slave can send actual data back
 
-	while((readSPI(1, SPIx, SPI_SR) & 1) == 0); //Wait until TX buffer is empty
-	while((readSPI(7, SPIx, SPI_SR) & 1) == 1); //Wait until SPI is not busy
-	while((readSPI(0, SPIx, SPI_SR) & 1) == 0); //Wait until RX buffer is full data
+	while((readSPI(1, config.SPIx, SPI_SR) & 1) == 0); //Wait until TX buffer is empty
+	while((readSPI(7, config.SPIx, SPI_SR) & 1) == 1); //Wait until SPI is not busy
+	while((readSPI(0, config.SPIx, SPI_SR) & 1) == 0); //Wait until RX buffer is full data
 
-	data = readSPI(0, SPIx, SPI_DR); //Read actual data
-	GPIO_WritePin(NSSpin, NSSport, ODR, my_GPIO_PIN_SET); //Deactivate the slave, pull NSS pin high again to end communication
+	data = readSPI(0, config.SPIx, SPI_DR); //Read actual data
+	GPIO_WritePin(config.nssPin, config.nssPort, ODR, my_GPIO_PIN_SET); //Deactivate the slave, pull NSS pin high again to end communication
 
 	return data;
 }
@@ -46,18 +47,18 @@ char SPI_readReceivedData(SPI_Name_t SPIx,
 /*
  *  @brief	Initializes the selected SPI peripheral and its SCK, MOSI, MISO pins.
  */
-void SPI_GPIO_Init(SPI_Name_t SPIx,
-			  GPIO_Pin_t sckPin, GPIO_PortName_t sckPort,
-			  GPIO_Pin_t mosiPin, GPIO_PortName_t mosiPort,
-			  GPIO_Pin_t misoPin, GPIO_PortName_t misoPort){
+void SPI_GPIO_Init(SPI_GPIO_Config_t config){
 
-	Enable_GPIO_Clock(sckPort);
-	Enable_GPIO_Clock(mosiPort);
-	Enable_GPIO_Clock(misoPort);
+	Enable_GPIO_Clock(config.sckPort);
+	Enable_GPIO_Clock(config.nssPort);
+	Enable_GPIO_Clock(config.mosiPort);
+	Enable_GPIO_Clock(config.misoPort);
 
-	SPI_sckPin_Init(sckPin, sckPort, SPIx);
-	SPI_mosiPin_Init(mosiPin, mosiPort, SPIx);
-	SPI_misoPin_Init(misoPin, misoPort, SPIx);
+	GPIO_WritePin(config.nssPin, config.nssPort, MODER, mode_01); //Set NSS pin as output
+
+	SPI_sckPin_Init(config.sckPin, config.sckPort, config.SPIx);
+	SPI_mosiPin_Init(config.mosiPin, config.mosiPort, config.SPIx);
+	SPI_misoPin_Init(config.misoPin, config.misoPort, config.SPIx);
 }
 
 
@@ -79,7 +80,7 @@ void SPI_GPIO_Init(SPI_Name_t SPIx,
  * @param	dataFrameSize		Data frame size for transmission/reception (0 for 8 bits and 1 for 16 bits)
  * @param	softSlaveEn 		Software slave management enable/disable (SPI_SSM_t)
  */
-void SPI_basicConfigInit(SPI_Name_t SPIx,
+void SPI_basicConfigInit(SPI_GPIO_Config_t config,
 						 SPI_MSTR_t masterSlaveSel,
 						 SPI_DFF_t dataFrameSize,
 						 SPI_BaudRate_t baudRateSel,
@@ -87,7 +88,7 @@ void SPI_basicConfigInit(SPI_Name_t SPIx,
 						 SPI_Enable_t enableMode){
 
 	//Flexible enable SPI clock
-	switch(SPIx){
+	switch(config.SPIx){
 		case my_SPI1: __HAL_RCC_SPI1_CLK_ENABLE(); break; //16MHz
 		case my_SPI2: __HAL_RCC_SPI2_CLK_ENABLE(); break;
 		case my_SPI3: __HAL_RCC_SPI3_CLK_ENABLE(); break;
@@ -96,19 +97,19 @@ void SPI_basicConfigInit(SPI_Name_t SPIx,
 		default: return;
 	}
 
-	WriteSPI(2, SPIx, SPI_CR1, masterSlaveSel); //Set STM32F411VET as master or slave
-	WriteSPI(11, SPIx, SPI_CR1, dataFrameSize); //Set data frame size (must be written before SPI is enabled)
-	WriteSPI(3, SPIx, SPI_CR1, baudRateSel); //Set how fast sckPin can generate (Hz)
-	WriteSPI(9, SPIx, SPI_CR1, softSlaveEn); //Needed if NSS is not physically connected
+	WriteSPI(2, config.SPIx, SPI_CR1, masterSlaveSel); //Set STM32F411VET as master or slave
+	WriteSPI(11, config.SPIx, SPI_CR1, dataFrameSize); //Set data frame size (must be written before SPI is enabled)
+	WriteSPI(3, config.SPIx, SPI_CR1, baudRateSel); //Set how fast sckPin can generate (Hz)
+	WriteSPI(9, config.SPIx, SPI_CR1, softSlaveEn); //Needed if NSS is not physically connected
 
 	/*
 	 * bit 8 = 1 -> Simulate NSS being high so that MODF in SR is disabled
 	 * bit 8 = 0 -> physical NSS is selected/connected
 	 */
-	WriteSPI(8, SPIx, SPI_CR1, softSlaveEn == SOFTWARE_SLAVE_ENABLE ? 1 : 0);
+	WriteSPI(8, config.SPIx, SPI_CR1, softSlaveEn == SOFTWARE_SLAVE_ENABLE ? 1 : 0);
 
 	//Enable SPI must be put after all other features are activated
-	WriteSPI(6, SPIx, SPI_CR1, enableMode); //Disable or Enable SPI
+	WriteSPI(6, config.SPIx, SPI_CR1, enableMode); //Disable or Enable SPI
 }
 
 

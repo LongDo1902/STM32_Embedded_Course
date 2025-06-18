@@ -26,11 +26,13 @@ typedef enum{
 	my_SPI5
 }SPI_Name_t;
 
+
 /*
  * Collections of SPI Offset Register Name
  */
 typedef enum{SPI_CR1, SPI_CR2, SPI_SR, SPI_DR, SPI_CRC,
 			SPI_RXCRCR, SPI_TXCRCR, SPI_I2SCFGR, SPI_I2SPR}SPI_Mode_t;
+
 
 /*
  * Names of several features for basic SPI configuring
@@ -40,10 +42,12 @@ typedef enum{
 	SOFTWARE_SLAVE_ENABLE//Remember to set SSI to 1 when user choose this to prevent activating MODF
 }SPI_SSM_t; //Software Slave Management
 
+
 typedef enum{
 	SPI_DISABLE,
 	SPI_ENABLE
 }SPI_Enable_t;
+
 
 typedef enum{
 	FPCLK_DIV2 = 0b000, //freq/2 = 16MHz/2
@@ -56,15 +60,34 @@ typedef enum{
 	FPCLK_DIV2256 = 0b111
 }SPI_BaudRate_t;
 
+
 typedef enum{
 	STM32_SLAVE,
 	STM32_MASTER
 }SPI_MSTR_t; //Master selection
 
+
 typedef enum {
 	DFF_8BITS,
 	DFF_16BITS
 }SPI_DFF_t; //Data frame format
+
+
+typedef struct{
+	SPI_Name_t SPIx;
+
+	GPIO_Pin_t sckPin;
+	GPIO_PortName_t sckPort;
+
+	GPIO_Pin_t nssPin;
+	GPIO_PortName_t nssPort;
+
+	GPIO_Pin_t mosiPin;
+	GPIO_PortName_t mosiPort;
+
+	GPIO_Pin_t misoPin;
+	GPIO_PortName_t misoPort;
+}SPI_GPIO_Config_t;
 
 
 
@@ -75,21 +98,16 @@ void SPI_sckPin_Init(GPIO_Pin_t sckPin, GPIO_PortName_t sckPort, SPI_Name_t SPIx
 void SPI_mosiPin_Init(GPIO_Pin_t mosiPin, GPIO_PortName_t mosiPort, SPI_Name_t SPIx);
 void SPI_misoPin_Init(GPIO_Pin_t misoPin, GPIO_PortName_t misoPort, SPI_Name_t SPIx);
 
-void SPI_GPIO_Init(SPI_Name_t SPIx,
-			  GPIO_Pin_t sckPin, GPIO_PortName_t sckPort,
-			  GPIO_Pin_t mosiPin, GPIO_PortName_t mosiPort,
-			  GPIO_Pin_t misoPin, GPIO_PortName_t misoPort);
+void SPI_GPIO_Init(SPI_GPIO_Config_t pinConfig);
 
-void SPI_basicConfigInit(SPI_Name_t SPIx,
+void SPI_basicConfigInit(SPI_GPIO_Config_t config,
 						 SPI_MSTR_t masterSlaveSel,
 						 SPI_DFF_t dataFrameSize,
 						 SPI_BaudRate_t baudRateSel,
 						 SPI_SSM_t softSlaveEn,
 						 SPI_Enable_t enableMode);
 
-char SPI_readReceivedData(SPI_Name_t SPIx,
-						  GPIO_Pin_t NSSpin,
-						  GPIO_PortName_t NSSport,
+char SPI_readReceivedData(SPI_GPIO_Config_t config,
 						  char slaveDeviceAddr);
 
 char readSPI(uint8_t bitPosition, SPI_Name_t userSPIx, SPI_Mode_t mode);
