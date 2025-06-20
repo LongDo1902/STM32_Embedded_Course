@@ -19,12 +19,20 @@ typedef enum {
 }EXTI_Trigger_t;
 
 
+
 /*
  * Function declarations
  */
 void EXTI_TriggerConfig(char bitPosition, EXTI_Trigger_t triggerMode);
+
 void EXTI_Init(char bitPosition, volatile uint32_t* NVIC_ISERx, IQRn_User_t EXTIx);
+
 void EXTI_Offset_Init(uint32_t* desiredOffsetAddr);
+
 void user_EXTI_IRQHandler(void(*functionCallBack)(void), uint8_t IRQNumber);
+
+void WriteEXTI(uint8_t bitPosition,
+			   EXTI_Mode_t mode,
+			   GPIO_State_t state);
 
 #endif /* INC_INTERRUPT_H_ */

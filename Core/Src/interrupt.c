@@ -122,4 +122,48 @@ void user_EXTI_IRQHandler(void(*functionCallBack)(void), uint8_t IRQNumber){
 
 
 
+/*
+ * Helper function to write bit to pin for EXTI purpose
+ * @param 	bitPosition:	the bit location that you want to write
+ * @param 	mode:			IMR if Interrupt Mask Reg is selected
+ * @param 	state:			Set or Ret
+ *
+ * @Info: See gpio_write_read.h
+ */
+void WriteEXTI(uint8_t bitPosition, EXTI_Mode_t mode, GPIO_State_t state){
+	volatile uint32_t *reg; //A pointer to store the address and access to the memory space at that address
+	uint32_t bitShift = bitPosition; //Position that we want to wrote the value (bit) to
 
+	switch(mode){
+		case IMR:
+			reg = &EXTI_REG -> IMR;
+			break;
+
+		case EMR:
+			reg = &EXTI_REG -> EMR;
+			break;
+
+		case RTSR:
+			reg = &EXTI_REG -> RTSR;
+			break;
+
+		case FTSR:
+			reg = &EXTI_REG -> FTSR;
+			break;
+
+		case SWIER:
+			reg = &EXTI_REG -> SWIER;
+			break;
+
+		case PR:
+			reg = &EXTI_REG -> PR;
+			break;
+
+		default: return; //Invalid mode
+	}
+
+	//Mask off the old bit and OR with new value
+	uint32_t mask = ((1U << 1) - 1U) << bitShift;
+	uint32_t value = ((uint32_t)state << bitShift) & mask;
+	*reg = (*reg & ~mask) | value;
+}

@@ -25,7 +25,9 @@ char SPI_readReceivedData(SPI_GPIO_Config_t config,
 	const uint8_t DUMMYBYTE = 0xFF;
 
 	//Ensure NSS GPIO is clocked and configured as output
-	GPIO_WritePin(config.nssPin, config.nssPort, ODR, my_GPIO_PIN_RESET); //Pull NSS pin low to activate the slave and begin communication
+//	GPIO_WritePin(config.nssPin, config.nssPort, ODR, my_GPIO_PIN_RESET); //Pull NSS pin low to activate the slave and begin communication
+	GPIO_WritePin(config.nssPin, config.nssPort, BSRR, my_GPIO_PIN_RESET); //Pull NSS pin low to activate the slave and begin communication
+	for(int i = 0; i < 100; i++); //Add delay when BSRR is used
 
 	while((readSPI(7, config.SPIx, SPI_SR) & 1) == 1); //SPI is busy in communication or TX buffer is not empty
 	writeSPI(0, config.SPIx, SPI_DR, (slaveDeviceAddr | READ_FLAG)); //(1 << 7) is refered to L3GD20 gyro for reading mode
@@ -44,8 +46,8 @@ char SPI_readReceivedData(SPI_GPIO_Config_t config,
 	while((readSPI(0, config.SPIx, SPI_SR) & 1) == 0); //Wait until RX buffer is full data
 
 	data = readSPI(0, config.SPIx, SPI_DR); //Read actual data
-	GPIO_WritePin(config.nssPin, config.nssPort, ODR, my_GPIO_PIN_SET); //Deactivate the slave, pull NSS pin high again to end communication
-
+//	GPIO_WritePin(config.nssPin, config.nssPort, ODR, my_GPIO_PIN_SET); //Deactivate the slave, pull NSS pin high again to end communication
+	GPIO_WritePin(config.nssPin, config.nssPort, BSRR, my_GPIO_PIN_SET); //Pull NSS pin low to activate the slave and begin communication
 	return data;
 }
 

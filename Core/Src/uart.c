@@ -53,11 +53,6 @@ void UART_Init(GPIO_Pin_t TXPin,
 	GPIO_WritePin(TXPin, portName, afrRegTX, AF7);
 	GPIO_WritePin(RXPin, portName, afrRegRX, AF7);
 
-//	uint32_t *GPIOB_AFRL = (uint32_t *)(0x40020420);
-//	*GPIOB_AFRL &= ~(0xff << 24);
-//	*GPIOB_AFRL |= (7 << 24) | (7 << 28);
-
-
 	/*
 	 * CONFIG UART
 	 *
@@ -162,7 +157,7 @@ char my_UART_Receive(UART_Name_t UARTx){
  */
 void my_UART_Transmit(UART_Name_t UARTx, uint8_t inputData){
 	while((readUART(7, UARTx, SR) & 1) == 0);
-	WriteUART(0, UARTx, DR, inputData);
+	WriteUART(0, UARTx, DR, inputData & 0x1FF);
 	while((readUART(6, UARTx, SR) & 1) == 0);
 }
 
