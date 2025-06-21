@@ -32,10 +32,10 @@ uint32_t* global_desiredOffsetAddr;
  */
 void EXTI_TriggerConfig(char bitPosition, EXTI_Trigger_t triggerMode){
 	if(triggerMode == my_EXTI_TRIGGER_RISING || triggerMode == my_EXTI_TRIGGER_BOTH){
-		WriteEXTI(bitPosition, RTSR, my_GPIO_PIN_SET); //Rising Edge Reg Enable
+		writeEXTI(bitPosition, RTSR, my_GPIO_PIN_SET); //Rising Edge Reg Enable
 	}
 	if(triggerMode == my_EXTI_TRIGGER_FALLING || triggerMode == my_EXTI_TRIGGER_BOTH){
-		WriteEXTI(bitPosition, FTSR, my_GPIO_PIN_SET); //Falling Edge Reg Enable
+		writeEXTI(bitPosition, FTSR, my_GPIO_PIN_SET); //Falling Edge Reg Enable
 	}
 	else{
 		return;
@@ -61,7 +61,7 @@ void EXTI_TriggerConfig(char bitPosition, EXTI_Trigger_t triggerMode){
  *                     		GPIO pin number but the vector-table index used by NVIC.
  */
 void EXTI_Init(char bitPosition, volatile uint32_t* NVIC_ISERx, IQRn_User_t EXTIx){
-	WriteEXTI(bitPosition, IMR, my_GPIO_PIN_SET);  //Interrupt Mask Reg Enable
+	writeEXTI(bitPosition, IMR, my_GPIO_PIN_SET);  //Interrupt Mask Reg Enable
 	*NVIC_ISERx |= (1 << EXTIx); //Enable NVIC IRQ
 }
 
@@ -130,7 +130,7 @@ void user_EXTI_IRQHandler(void(*functionCallBack)(void), uint8_t IRQNumber){
  *
  * @Info: See gpio_write_read.h
  */
-void WriteEXTI(uint8_t bitPosition, EXTI_Mode_t mode, GPIO_State_t state){
+void writeEXTI(uint8_t bitPosition, EXTI_Mode_t mode, GPIO_State_t state){
 	volatile uint32_t *reg; //A pointer to store the address and access to the memory space at that address
 	uint32_t bitShift = bitPosition; //Position that we want to wrote the value (bit) to
 

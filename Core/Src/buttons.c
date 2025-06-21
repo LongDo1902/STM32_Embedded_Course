@@ -16,8 +16,8 @@
  */
 void buttonInit(char buttonPin, GPIO_PortName_t portName){
 	__HAL_RCC_GPIOA_CLK_ENABLE();
-	GPIO_WritePin(buttonPin, portName, MODER, mode_00); //Set buttonPin of portName as an input mode
-	GPIO_WritePin(buttonPin, portName, PUPDR, mode_02); //Set buttonPin of portName as pull-down config
+	writePin(buttonPin, portName, MODER, mode_00); //Set buttonPin of portName as an input mode
+	writePin(buttonPin, portName, PUPDR, mode_02); //Set buttonPin of portName as pull-down config
 }
 
 /*

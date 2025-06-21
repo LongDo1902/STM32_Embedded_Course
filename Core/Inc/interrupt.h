@@ -31,7 +31,7 @@ void EXTI_Offset_Init(uint32_t* desiredOffsetAddr);
 
 void user_EXTI_IRQHandler(void(*functionCallBack)(void), uint8_t IRQNumber);
 
-void WriteEXTI(uint8_t bitPosition,
+void writeEXTI(uint8_t bitPosition,
 			   EXTI_Mode_t mode,
 			   GPIO_State_t state);
 

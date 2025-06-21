@@ -44,14 +44,14 @@ void UART_Init(GPIO_Pin_t TXPin,
 	/*
 	 * Set TX/RXpin of a specific port to MODER mode and set its state to 0x02 (Alternate function mode)
 	 */
-	GPIO_WritePin(TXPin, portName, MODER, mode_02);
-	GPIO_WritePin(RXPin, portName, MODER, mode_02);
+	writePin(TXPin, portName, MODER, mode_02);
+	writePin(RXPin, portName, MODER, mode_02);
 
 	GPIO_Mode_t afrRegTX = (TXPin <= 7) ? AFRL : AFRH;
 	GPIO_Mode_t afrRegRX = (RXPin <= 7) ? AFRL : AFRH;
 
-	GPIO_WritePin(TXPin, portName, afrRegTX, AF7);
-	GPIO_WritePin(RXPin, portName, afrRegRX, AF7);
+	writePin(TXPin, portName, afrRegTX, AF7);
+	writePin(RXPin, portName, afrRegRX, AF7);
 
 	/*
 	 * CONFIG UART
@@ -71,26 +71,26 @@ void UART_Init(GPIO_Pin_t TXPin,
 	/*
 	 * Write calculated full values to BRR
 	 */
-	WriteUART(0, UARTx, BRR, fullBRR);
+	writeUART(0, UARTx, BRR, fullBRR);
 
 	/*
 	 * Enable TX and RX mode
 	 */
-	WriteUART(2, UARTx, CR1, 1); //Receiver is enabled and begins searching for a start bit
-	WriteUART(3, UARTx, CR1, 1); //Transmitter enable
+	writeUART(2, UARTx, CR1, 1); //Receiver is enabled and begins searching for a start bit
+	writeUART(3, UARTx, CR1, 1); //Transmitter enable
 
 	/*
 	 * Auto select parity control
 	 */
 	if(parity == PARITY_NONE){
-		WriteUART(10, UARTx, CR1, 0); //PCE = 0
+		writeUART(10, UARTx, CR1, 0); //PCE = 0
 	}else{
-		WriteUART(10, UARTx, CR1, 1); //PCE = 1
+		writeUART(10, UARTx, CR1, 1); //PCE = 1
 
 		if(parity == PARITY_EVEN){
-			WriteUART(9, UARTx, CR1, 0); //PS = 0 for EVEN
+			writeUART(9, UARTx, CR1, 0); //PS = 0 for EVEN
 		} else{
-			WriteUART(9, UARTx, CR1, 1); //PS = 1 for ODD
+			writeUART(9, UARTx, CR1, 1); //PS = 1 for ODD
 		}
 	}
 
@@ -98,14 +98,14 @@ void UART_Init(GPIO_Pin_t TXPin,
 	 * Auto select the data frame size
 	 */
 	if (wordLength == WORDLENGTH_8B){
-		WriteUART(12, UARTx, CR1, 0); //Set data frame size as 8 bits
+		writeUART(12, UARTx, CR1, 0); //Set data frame size as 8 bits
 	}else if (wordLength == WORDLENGTH_9B) {
-		WriteUART(12, UARTx, CR1, 1); //Set data frame size as 9 bits
+		writeUART(12, UARTx, CR1, 1); //Set data frame size as 9 bits
 	}else{
 		return;
 	}
 
-	WriteUART(13, UARTx, CR1, 1); //Enable UART
+	writeUART(13, UARTx, CR1, 1); //Enable UART
 }
 
 
@@ -157,7 +157,7 @@ char my_UART_Receive(UART_Name_t UARTx){
  */
 void my_UART_Transmit(UART_Name_t UARTx, uint8_t inputData){
 	while((readUART(7, UARTx, SR) & 1) == 0);
-	WriteUART(0, UARTx, DR, inputData & 0x1FF);
+	writeUART(0, UARTx, DR, inputData & 0x1FF);
 	while((readUART(6, UARTx, SR) & 1) == 0);
 }
 
@@ -170,7 +170,7 @@ void my_UART_Transmit(UART_Name_t UARTx, uint8_t inputData){
  * @param	mode			different UART mode registers
  * @param	state			write set for 1, reset for 0
  */
-void WriteUART(uint8_t bitPosition, UART_Name_t userUARTx, UART_Mode_t mode, uint32_t value){
+void writeUART(uint8_t bitPosition, UART_Name_t userUARTx, UART_Mode_t mode, uint32_t value){
 	UART_Register_Offset_t* UARTx;
 	switch(userUARTx){
 		case my_UART1: UARTx = UART1_REG; break;

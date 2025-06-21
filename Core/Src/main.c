@@ -10,26 +10,8 @@
 #include "spi.h"
 
 char session[15] = "EXTI";
-
 int LED_Delay = 400; //ms
 uint32_t* desiredOffsetAddr = (uint32_t*)0x20000000;
-
-SPI_GPIO_Config_t spiConfig = {
-	.SPIx = my_SPI1,
-
-	.sckPin = my_GPIO_PIN_5,
-	.sckPort = my_GPIOA,
-
-	.nssPin = my_GPIO_PIN_3,
-	.nssPort = my_GPIOE,
-
-	.mosiPin = my_GPIO_PIN_7,
-	.mosiPort = my_GPIOA,
-
-	.misoPin = my_GPIO_PIN_6,
-	.misoPort = my_GPIOA
-};
-
 
 void EXTIFunction(){
 	if(buttonState()){
@@ -38,7 +20,7 @@ void EXTIFunction(){
 	else{
 		LED_Control(LED_Green, 0);
 	}
-	WriteEXTI(0, PR, my_GPIO_PIN_SET); //Clear the flag
+	writeEXTI(0, PR, my_GPIO_PIN_SET); //Clear the flag
 }
 
 
@@ -81,6 +63,23 @@ int main(void){
 	}
 
 	if(strcmp(session, "SPI") == 0){
+
+		SPI_GPIO_Config_t spiConfig = {
+			.SPIx = my_SPI1,
+
+			.sckPin = my_GPIO_PIN_5,
+			.sckPort = my_GPIOA,
+
+			.nssPin = my_GPIO_PIN_3,
+			.nssPort = my_GPIOE,
+
+			.mosiPin = my_GPIO_PIN_7,
+			.mosiPort = my_GPIOA,
+
+			.misoPin = my_GPIO_PIN_6,
+			.misoPort = my_GPIOA
+		};
+
 		SPI_GPIO_Init(spiConfig);
 		SPI_basicConfigInit(spiConfig, STM32_MASTER, DFF_8BITS, FPCLK_DIV16, SOFTWARE_SLAVE_ENABLE, SPI_ENABLE);
 		char spiRead1 = SPI_readReceivedData(spiConfig, 0x0F);

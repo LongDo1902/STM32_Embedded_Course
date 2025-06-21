@@ -102,7 +102,7 @@ typedef enum{FLASH_ACR, FLASH_KEYR, FLASH_OPTKEYR,
  */
 void Enable_GPIO_Clock(GPIO_PortName_t port);
 
-void GPIO_WritePin (GPIO_Pin_t pinNum,
+void writePin(GPIO_Pin_t pinNum,
 					GPIO_PortName_t port,
 					GPIO_Mode_t mode,
 					GPIO_State_t state);
@@ -114,7 +114,7 @@ char readPin(uint8_t bitPosition,
 			GPIO_PortName_t port,
 			GPIO_Mode_t mode);
 
-void WriteFlash(uint8_t bitPosition,
+void writeFlash(uint8_t bitPosition,
 					Flash_IntF_Mode_t mode,
 					uint32_t value);
 

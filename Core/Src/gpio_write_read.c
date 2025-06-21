@@ -32,7 +32,7 @@ void Enable_GPIO_Clock(GPIO_PortName_t port){
  *
  * @Info: see gpio_write_read.h
  */
-void GPIO_WritePin(GPIO_Pin_t pinNum, GPIO_PortName_t port, GPIO_Mode_t mode, GPIO_State_t state){
+void writePin(GPIO_Pin_t pinNum, GPIO_PortName_t port, GPIO_Mode_t mode, GPIO_State_t state){
 	if(pinNum > 15) return; //safeguard
 
 	//Create pointer GPIOx which has connection to GPIO_Register_Offset_t
@@ -210,7 +210,7 @@ bool GPIO_LockPin(GPIO_Pin_t pinNum, GPIO_PortName_t port){
  * 	@param 	mode			Enum indicating which FLASH register to write to
  * 	@param	value			Data to be written; bit width is inferred automatically
  */
-void WriteFlash(uint8_t bitPosition, Flash_IntF_Mode_t mode, uint32_t value){
+void writeFlash(uint8_t bitPosition, Flash_IntF_Mode_t mode, uint32_t value){
 	//Get the case address of the FLASH interface register map
 	Flash_IntF_Register_Offset_t* flashReg = FLASH_REG;
 

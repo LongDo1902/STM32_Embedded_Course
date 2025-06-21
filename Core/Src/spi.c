@@ -25,8 +25,8 @@ char SPI_readReceivedData(SPI_GPIO_Config_t config,
 	const uint8_t DUMMYBYTE = 0xFF;
 
 	//Ensure NSS GPIO is clocked and configured as output
-//	GPIO_WritePin(config.nssPin, config.nssPort, ODR, my_GPIO_PIN_RESET); //Pull NSS pin low to activate the slave and begin communication
-	GPIO_WritePin(config.nssPin, config.nssPort, BSRR, my_GPIO_PIN_RESET); //Pull NSS pin low to activate the slave and begin communication
+//	writePin(config.nssPin, config.nssPort, ODR, my_GPIO_PIN_RESET); //Pull NSS pin low to activate the slave and begin communication
+	writePin(config.nssPin, config.nssPort, BSRR, my_GPIO_PIN_RESET); //Pull NSS pin low to activate the slave and begin communication
 	for(int i = 0; i < 100; i++); //Add delay when BSRR is used
 
 	while((readSPI(7, config.SPIx, SPI_SR) & 1) == 1); //SPI is busy in communication or TX buffer is not empty
@@ -46,8 +46,8 @@ char SPI_readReceivedData(SPI_GPIO_Config_t config,
 	while((readSPI(0, config.SPIx, SPI_SR) & 1) == 0); //Wait until RX buffer is full data
 
 	data = readSPI(0, config.SPIx, SPI_DR); //Read actual data
-//	GPIO_WritePin(config.nssPin, config.nssPort, ODR, my_GPIO_PIN_SET); //Deactivate the slave, pull NSS pin high again to end communication
-	GPIO_WritePin(config.nssPin, config.nssPort, BSRR, my_GPIO_PIN_SET); //Pull NSS pin low to activate the slave and begin communication
+//	writePin(config.nssPin, config.nssPort, ODR, my_GPIO_PIN_SET); //Deactivate the slave, pull NSS pin high again to end communication
+	writePin(config.nssPin, config.nssPort, BSRR, my_GPIO_PIN_SET); //Pull NSS pin low to activate the slave and begin communication
 	return data;
 }
 
@@ -57,7 +57,7 @@ char SPI_readReceivedData(SPI_GPIO_Config_t config,
  *
  */
 void SPI_write2Device(SPI_GPIO_Config_t config, char slaveDeviceAddr, char writeValue){
-	GPIO_WritePin(config.nssPin, config.nssPort, ODR, my_GPIO_PIN_RESET); //Pull NSS pin low to start communicating
+	writePin(config.nssPin, config.nssPort, ODR, my_GPIO_PIN_RESET); //Pull NSS pin low to start communicating
 
 	while((readSPI(7, config.SPIx, SPI_SR) & 1) == 1); //SPI is busy in communicating or TX buffer is not yet empty
 	writeSPI(0, config.SPIx, SPI_DR, slaveDeviceAddr);
@@ -75,7 +75,7 @@ void SPI_write2Device(SPI_GPIO_Config_t config, char slaveDeviceAddr, char write
 	while((readSPI(7, config.SPIx, SPI_SR) & 1) == 1); //Wait until SPI is not busy
 	while((readSPI(0, config.SPIx, SPI_SR) & 1) == 0); //Wait until RX buffer is full data
 
-	GPIO_WritePin(config.nssPin, config.nssPort, ODR, my_GPIO_PIN_SET); //Pull the NSS pin high -> deactivate slave
+	writePin(config.nssPin, config.nssPort, ODR, my_GPIO_PIN_SET); //Pull the NSS pin high -> deactivate slave
 }
 
 
@@ -89,7 +89,7 @@ void SPI_GPIO_Init(SPI_GPIO_Config_t config){
 	Enable_GPIO_Clock(config.mosiPort);
 	Enable_GPIO_Clock(config.misoPort);
 
-	GPIO_WritePin(config.nssPin, config.nssPort, MODER, mode_01); //Set NSS pin as output
+	writePin(config.nssPin, config.nssPort, MODER, mode_01); //Set NSS pin as output
 
 	SPI_sckPin_Init(config.sckPin, config.sckPort, config.SPIx);
 	SPI_mosiPin_Init(config.mosiPin, config.mosiPort, config.SPIx);
@@ -157,7 +157,7 @@ void SPI_basicConfigInit(SPI_GPIO_Config_t config,
  * @param	SPIx		Target SPI (e.g., my_SPI1)
  */
 void SPI_sckPin_Init(GPIO_Pin_t sckPin, GPIO_PortName_t sckPort, SPI_Name_t SPIx){
-	GPIO_WritePin(sckPin, sckPort, MODER, mode_02); //Config this pin in MODER to Alternate Function mode for SPI interface
+	writePin(sckPin, sckPort, MODER, mode_02); //Config this pin in MODER to Alternate Function mode for SPI interface
 	GPIO_Mode_t afrRegSck = (sckPin <= 7) ? AFRL : AFRH; //Check which AF reg (AFRL or AFRH) is chosen corresponding to pin number
 
 	/*
@@ -168,13 +168,13 @@ void SPI_sckPin_Init(GPIO_Pin_t sckPin, GPIO_PortName_t sckPort, SPI_Name_t SPIx
 	 * SPI5 -> AF6
 	 */
 	if(sckPin == 12 && sckPort == my_GPIOB){
-		GPIO_WritePin(sckPin, sckPort, afrRegSck, AF7); //set PB12 to AF07 (SPI3_SCK);
+		writePin(sckPin, sckPort, afrRegSck, AF7); //set PB12 to AF07 (SPI3_SCK);
 	}
 	else if(SPIx == my_SPI1 || SPIx == my_SPI2 || SPIx == my_SPI4){
-		GPIO_WritePin(sckPin, sckPort, afrRegSck, AF5); //Set to SPI1/2/4_SCK
+		writePin(sckPin, sckPort, afrRegSck, AF5); //Set to SPI1/2/4_SCK
 	}
 	else{
-		GPIO_WritePin(sckPin, sckPort, afrRegSck, AF6); //Set to SPI3/5_SCK
+		writePin(sckPin, sckPort, afrRegSck, AF6); //Set to SPI3/5_SCK
 	}
 }
 
@@ -187,7 +187,7 @@ void SPI_sckPin_Init(GPIO_Pin_t sckPin, GPIO_PortName_t sckPort, SPI_Name_t SPIx
  * @param	SPIx		Target SPI (e.g., my_SPI1)
  */
 void SPI_mosiPin_Init(GPIO_Pin_t mosiPin, GPIO_PortName_t mosiPort, SPI_Name_t SPIx){
-	GPIO_WritePin(mosiPin, mosiPort, MODER, mode_02); //Config this pin in MODER to Alternate Function mode for SPI interface
+	writePin(mosiPin, mosiPort, MODER, mode_02); //Config this pin in MODER to Alternate Function mode for SPI interface
 	GPIO_Mode_t afrRegMosi = (mosiPin <= 7) ? AFRL : AFRH; //Check which AF reg (AFRL or AFRH) is chosen corresponding to pin number
 
 	/*
@@ -198,14 +198,14 @@ void SPI_mosiPin_Init(GPIO_Pin_t mosiPin, GPIO_PortName_t mosiPort, SPI_Name_t S
 	 */
 	if(SPIx == my_SPI5 || SPIx == my_SPI3){
 		if(mosiPin == my_GPIO_PIN_6 && mosiPort == my_GPIOD){
-			GPIO_WritePin(mosiPin, mosiPort, afrRegMosi, AF5);
+			writePin(mosiPin, mosiPort, afrRegMosi, AF5);
 		}
 		else{
-			GPIO_WritePin(mosiPin, mosiPort, afrRegMosi, AF6);
+			writePin(mosiPin, mosiPort, afrRegMosi, AF6);
 		}
 	}
 	else{
-		GPIO_WritePin(mosiPin, mosiPort, afrRegMosi, AF5);
+		writePin(mosiPin, mosiPort, afrRegMosi, AF5);
 	}
 }
 
@@ -218,7 +218,7 @@ void SPI_mosiPin_Init(GPIO_Pin_t mosiPin, GPIO_PortName_t mosiPort, SPI_Name_t S
  * @param	SPIx		Target SPI (e.g., my_SPI1)
  */
 void SPI_misoPin_Init(GPIO_Pin_t misoPin, GPIO_PortName_t misoPort, SPI_Name_t SPIx){
-	GPIO_WritePin(misoPin, misoPort, MODER, mode_02);
+	writePin(misoPin, misoPort, MODER, mode_02);
 	GPIO_Mode_t afrRegMiso = (misoPin <= 7) ? AFRL : AFRH;
 
 	/*
@@ -228,14 +228,14 @@ void SPI_misoPin_Init(GPIO_Pin_t misoPin, GPIO_PortName_t misoPort, SPI_Name_t S
 	 */
 	if(SPIx == my_SPI1 || SPIx == my_SPI2 || SPIx == my_SPI4){
 		if(misoPin == my_GPIO_PIN_11 && misoPort == my_GPIOA){
-			GPIO_WritePin(misoPin, misoPort, afrRegMiso, AF6);
+			writePin(misoPin, misoPort, afrRegMiso, AF6);
 		}
 		else{
-			GPIO_WritePin(misoPin, misoPort, afrRegMiso, AF5);
+			writePin(misoPin, misoPort, afrRegMiso, AF5);
 		}
 	}
 	else if(SPIx == my_SPI3 || SPIx == my_SPI5){
-		GPIO_WritePin(misoPin, misoPort, afrRegMiso, AF6);
+		writePin(misoPin, misoPort, afrRegMiso, AF6);
 	}
 }
 

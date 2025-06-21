@@ -142,6 +142,34 @@ typedef struct{
 }SPI_Register_Offset_t;
 
 /*
+ * TIMER1 Register Offsets
+ */
+typedef struct{
+	volatile uint32_t TIM1_CR1;		//0x00 (Control Reg 1)
+	volatile uint32_t TIM1_CR2;		//0x04 (Control Reg 2)
+	volatile uint32_t TIM1_SMCR;	//0x08 (Slave Mode Control Reg)
+	volatile uint32_t TIM1_DMA;		//0x0C (DMA/Interrupt Enable Reg)
+	volatile uint32_t TIM1_SR;		//0x10 (Status Reg)
+	volatile uint32_t TIM1_EGR;		//0x14 (Event Generation Reg)
+	volatile uint32_t TIM1_CCMR1;	//0x18 (Capture/Compare Mode Reg 1)
+	volatile uint32_t TIM1_CCMR2;	//0x1C (Capture/Compare Mode Reg 2)
+	volatile uint32_t TIM1_CCER;	//0x20 (Capture/Compare Enable Register)
+	volatile uint32_t TIM1_CNT;		//0x24 (Counter Reg)
+	volatile uint32_t TIM1_PSC;		//0x28 (Prescaler Reg)
+	volatile uint32_t TIM1_ARR;		//0x2C (Auto-Reload Reg)
+	volatile uint32_t TIM1_RCR;		//0x30 (Repetition Counter Reg)
+	volatile uint32_t TIM1_CCR1;	//0x34 (Capture/Compare Reg 1)
+	volatile uint32_t TIM1_CCR2;	//0x38 (Capture/Compare Reg 2)
+	volatile uint32_t TIM1_CCR3;	//0x3C (Capture/Compare Reg 3)
+	volatile uint32_t TIM1_CCR4;	//0x40 (Capture/Compare Reg 4)
+	volatile uint32_t TIM1_BDTR;	//0x44 (Break & Dead-time Reg)
+	volatile uint32_t TIM1_DCR;		//0x48 (DMA Control Reg)
+	volatile uint32_t TIM1_DMAR;	//0x4C (DMA Address for full transfer)
+}Timer1_Register_Offset_t;
+
+
+
+/*
  * FLASH Interface Register Offset
  */
 typedef struct {

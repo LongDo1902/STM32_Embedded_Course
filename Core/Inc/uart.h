@@ -53,7 +53,7 @@ typedef enum{
 /*
  * Function Declarations
  */
-void WriteUART(uint8_t bitPosition, UART_Name_t userUARTx, UART_Mode_t mode, uint32_t value);
+void writeUART(uint8_t bitPosition, UART_Name_t userUARTx, UART_Mode_t mode, uint32_t value);
 
 char readUART(uint8_t bitPosition, UART_Name_t userUARTx, UART_Mode_t mode);
 
