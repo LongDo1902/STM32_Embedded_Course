@@ -61,7 +61,7 @@ int main(void){
 			}
 		}
 	}
-
+//Do Bao Long
 	if(strcmp(session, "SPI") == 0){
 
 		SPI_GPIO_Config_t spiConfig = {
