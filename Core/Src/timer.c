@@ -11,7 +11,7 @@
  *
  * @param
  */
-void writeTimer1(uint8_t bitPosition){
+void writeTimer1(uint8_t bitPosition, ){
 	if(bitPosition > 15) return;
 
 }

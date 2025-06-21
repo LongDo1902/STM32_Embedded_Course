@@ -9,8 +9,9 @@
 #include "uart.h"
 #include "spi.h"
 
+
 char session[15] = "EXTI";
-int LED_Delay = 400; //ms
+int LED_Delay = 400;
 uint32_t* desiredOffsetAddr = (uint32_t*)0x20000000;
 
 void EXTIFunction(){
@@ -61,7 +62,7 @@ int main(void){
 			}
 		}
 	}
-//Do Bao Long
+
 	if(strcmp(session, "SPI") == 0){
 
 		SPI_GPIO_Config_t spiConfig = {
