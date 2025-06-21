@@ -142,66 +142,37 @@ typedef struct{
 }SPI_Register_Offset_t;
 
 /*
- * TIMER1 Register Offsets
+ * TIMER 1 2 3 4 5, 9 10 11 Register Offsets
  */
 typedef struct{
-	volatile uint32_t TIM1_CR1;		//0x00 (Control Reg 1)
-	volatile uint32_t TIM1_CR2;		//0x04 (Control Reg 2)
-	volatile uint32_t TIM1_SMCR;	//0x08 (Slave Mode Control Reg)
-	volatile uint32_t TIM1_DIER;	//0x0C (DMA/Interrupt Enable Reg)
-	volatile uint32_t TIM1_SR;		//0x10 (Status Reg)
+	volatile uint32_t TIM_CR1;	//0x00 (Control Reg 1)
+	volatile uint32_t TIM_CR2;	//0x04 (Control Reg 2)
+	volatile uint32_t TIM_SMCR;	//0x08 (Slave Mode Control Reg)
+	volatile uint32_t TIM_DIER;	//0x0C (DMA/Interrupt Enable Reg)
+	volatile uint32_t TIM_SR;	//0x10 (Status Reg)
 
-	volatile uint32_t TIM1_EGR;		//0x14 (Event Generation Reg)
-	volatile uint32_t TIM1_CCMR1;	//0x18 (Capture/Compare Mode Reg 1)
-	volatile uint32_t TIM1_CCMR2;	//0x1C (Capture/Compare Mode Reg 2)
-	volatile uint32_t TIM1_CCER;	//0x20 (Capture/Compare Enable Register)
-	volatile uint32_t TIM1_CNT;		//0x24 (Counter Reg)
+	volatile uint32_t TIM_EGR;		//0x14 (Event Generation Reg)
+	volatile uint32_t TIM_CCMR1;	//0x18 (Capture/Compare Mode Reg 1)
+	volatile uint32_t TIM_CCMR2;	//0x1C (Capture/Compare Mode Reg 2)
+	volatile uint32_t TIM_CCER;		//0x20 (Capture/Compare Enable Reg)
+	volatile uint32_t TIM_CNT;		//0x24 (Counter)
 
-	volatile uint32_t TIM1_PSC;		//0x28 (Prescaler Reg)
-	volatile uint32_t TIM1_ARR;		//0x2C (Auto-Reload Reg)
-	volatile uint32_t TIM1_RCR;		//0x30 (Repetition Counter Reg)
-	volatile uint32_t TIM1_CCR1;	//0x34 (Capture/Compare Reg 1)
-	volatile uint32_t TIM1_CCR2;	//0x38 (Capture/Compare Reg 2)
+	volatile uint32_t TIM_PSC;		//0x28 (Prescaler)
+	volatile uint32_t TIM_ARR;		//0x2C (Auto-reload Reg)
+	volatile uint32_t TIM_RCR;		//0x30 (Repetition Counter Reg) (Only TIM1)
 
-	volatile uint32_t TIM1_CCR3;	//0x3C (Capture/Compare Reg 3)
-	volatile uint32_t TIM1_CCR4;	//0x40 (Capture/Compare Reg 4)
-	volatile uint32_t TIM1_BDTR;	//0x44 (Break & Dead-time Reg)
-	volatile uint32_t TIM1_DCR;		//0x48 (DMA Control Reg)
-	volatile uint32_t TIM1_DMAR;	//0x4C (DMA Address for full transfer)
-}Timer1_Register_Offset_t;
+	volatile uint32_t TIM_CCR1;		//0x34 (Capture/Compare Reg 1)
+	volatile uint32_t TIM_CCR2;		//0x38 (Capture/Compare Reg 2)
+	volatile uint32_t TIM_CCR3;		//0x3C (Capture/Compare Reg 3)
+	volatile uint32_t TIM_CCR4;		//0x40 (Capture/Compare Reg 4)
 
-/*
- * TIMER2 & TIMER5 Register Offsets
- */
-typedef struct {
-	volatile uint32_t TIM2_5_CR1;	//0x00 (Control Reg 1)
-	volatile uint32_t TIM2_5_CR2;	//0x04 (Control Reg 2)
-	volatile uint32_t TIM2_5_SMCR;	//0x08 (Slave Mode Control Reg)
-	volatile uint32_t TIM2_5_DIER;	//0x0C (DMA/Interrupt Enable Reg)
-	volatile uint32_t TIM2_5_SR;	//0x10 (Status Reg)
+	volatile uint32_t TIM_BDTR;		//Only TIM1 (Break & Dead-time Reg)
 
-	volatile uint32_t TIM2_5_EGR;	//0x14 (Event Generation Reg)
-	volatile uint32_t TIM2_5_CCMR1;	//0x18 (Capture/Compare Mode Reg 1)
-	volatile uint32_t TIM2_5_CCMR2;	//0x1C (Capture/Compare Mode Reg 2)
-	volatile uint32_t TIM2_5_CCER;	//0x20 (Capture/Compare Enable Reg)
-	volatile uint32_t TIM2_5_CNT;	//0x24 (Counter)
+	volatile uint32_t TIM_DCR;		//0x48 (DMA Control Reg)
+	volatile uint32_t TIM_DMAR;		//0x4C (DMA Address for Full Transfer)
 
-	volatile uint32_t TIM2_5_PSC;	//0x28 (Prescaler)
-	volatile uint32_t TIM2_5_ARR;	//0x2C (Auto-reload Reg)
-	volatile uint32_t reserved;		//0x30 (Reserved)
-	volatile uint32_t TIM2_5_CCR1;	//
-	volatile uint32_t TIM2_5_CCR2;
-
-	volatile uint32_t TIM2_5_CCR3;
-	volatile uint32_t TIM2_5_CCR4;
-	volatile uint32_t reserved1;
-	volatile uint32_t TIM2_5_DCR;
-	volatile uint32_t TIM2_5_DMAR;
-
-	volatile uint32_t TIM2_OR;
-	volatile uint32_t TIM5_OR;
-}Timer2_5_Register_Offset_t;
-
+	volatile uint32_t TIM_OR;		//0x50 (Option Reg) (TIM2/3/4/5/10/11)
+}TIM_Register_Offset_t;
 
 /*
  * FLASH Interface Register Offset
@@ -217,8 +188,6 @@ typedef struct {
 
 
 ////////////END OF REGISTER OFFSET STRUCTS////////////
-
-
 
 /*
  * GPIOs Reg Pointers
@@ -254,8 +223,16 @@ typedef struct {
 /*
  * TIMER1 Reg Pointers
  */
-#define TIM1_REG ((Timer1_Register_Offset_t*)TIM1_BASE_ADDR)
-#define TIM2_REG ((Timer1_Register_Offset_t*)TIM2_BASE_ADDR)
+#define TIM1_REG ((TIM_Register_Offset_t*)TIM1_BASE_ADDR)
+#define TIM2_REG ((TIM_Register_Offset_t*)TIM2_BASE_ADDR)
+#define TIM3_REG ((TIM_Register_Offset_t*)TIM3_BASE_ADDR)
+#define TIM4_REG ((TIM_Register_Offset_t*)TIM4_BASE_ADDR)
+#define TIM5_REG ((TIM_Register_Offset_t*)TIM5_BASE_ADDR)
+
+#define TIM9_REG ((TIM_Register_Offset_t*)TIM9_BASE_ADDR)
+#define TIM10_REG ((TIM_Register_Offset_t*)TIM10_BASE_ADDR)
+#define TIM11_REG ((TIM_Register_Offset_t*)TIM11_BASE_ADDR)
+
 /*
  * Flash Reg Pointers
  */
