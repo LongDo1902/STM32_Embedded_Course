@@ -479,7 +479,7 @@ uint32_t readTimer (uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
 
 
 		/*
-		 *TIMER2
+		 *TIMER2 (32-bits timer)
 		 */
 		case my_TIM2:
 			TIMx_p = TIM2_REG;
@@ -562,7 +562,7 @@ uint32_t readTimer (uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
 
 				case TIM_CNT:
 					reg = &TIMx_p -> TIM_CNT;
-					return (*reg & 0xFFFF);
+					return (*reg & 0xFFFFFFFF); //TIM2 has total 32bits
 				break;
 
 
@@ -602,7 +602,6 @@ uint32_t readTimer (uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
 				break;
 
 
-
 				case TIM_DCR:
 					if((bitPosition >= 5 && bitPosition <= 7) || (bitPosition > 12)) return ERROR_FLAG;
 
@@ -626,13 +625,12 @@ uint32_t readTimer (uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
 		break;
 
 
-
-
-
-
 		case my_TIM3: TIMx_p = TIM3_REG; break;
 		case my_TIM4: TIMx_p = TIM4_REG; break;
 		case my_TIM5: TIMx_p = TIM5_REG; break;
+
+
+
 		case my_TIM9: TIMx_p = TIM9_REG; break;
 		case my_TIM10: TIMx_p = TIM10_REG; break;
 		case my_TIM11: TIMx_p = TIM11_REG; break;
