@@ -460,9 +460,9 @@ uint32_t readTimer (uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
 
 					reg = &TIMx_p -> TIM_DCR;
 					if(bitPosition == 0 || bitPosition == 8){
-						//DBA[4:0] at bit 0: bit 0 to 4 -> 5 bits
-						//DBL[4:0] at bit 8: bit 8 to 12 -> 5 bits
-						return(*reg & 0b11111);
+					//DBA[4:0] at bit 0: bit 0 to 4 -> 5 bits
+					//DBL[4:0] at bit 8: bit 8 to 12 -> 5 bits
+					return ((*reg >> bitPosition) & 0b11111);
 					}
 					else return ERROR_FLAG;
 				break;
@@ -498,8 +498,7 @@ uint32_t readTimer (uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
 
 
 				case TIM_CR2:
-					if(bitPosition == 1 || bitPosition == 15) return ERROR_FLAG; //Block reserved bits
-
+					if((bitPosition >= 0 && bitPosition <= 2) || (bitPosition > 7)) return ERROR_FLAG;
 					reg = &TIMx_p -> TIM_CR2;
 					if(bitPosition == 4){
 						//MMS[0:2] at bit 4: bit 4 to 6 -> 3 bits
@@ -530,7 +529,7 @@ uint32_t readTimer (uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
 
 
 				case TIM_DIER:
-					if(bitPosition == 15) return ERROR_FLAG; //Blocks reserved bits
+					if(bitPosition == 15 || bitPosition == 13 || bitPosition == 7 || bitPosition == 5) return ERROR_FLAG; //Blocks reserved bits
 
 					reg = &TIMx_p -> TIM_DIER;
 					return ((*reg >> bitPosition) & 0b1);
@@ -538,7 +537,7 @@ uint32_t readTimer (uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
 
 
 				case TIM_SR:
-					if(bitPosition > 12 || bitPosition == 8) return ERROR_FLAG; //Blocks reserved bits
+					if(bitPosition > 12 || bitPosition == 8 || bitPosition == 7 || bitPosition == 5) return ERROR_FLAG; //Blocks reserved bits
 
 					reg = &TIMx_p -> TIM_SR;
 					return ((*reg >> bitPosition) & 0b1);
@@ -546,7 +545,7 @@ uint32_t readTimer (uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
 
 
 				case TIM_EGR:
-					if(bitPosition > 7) return ERROR_FLAG; //Block reserved bits
+					if(bitPosition > 7 || bitPosition == 5) return ERROR_FLAG; //Block reserved bits
 
 					reg = &TIMx_p -> TIM_EGR;
 					return ((*reg >> bitPosition) & 0b1);
@@ -554,7 +553,7 @@ uint32_t readTimer (uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
 
 
 				case TIM_CCER:
-					if(bitPosition == 14) return ERROR_FLAG; //Block reserved bits
+					if(bitPosition == 14 || bitPosition == 10 || bitPosition == 6 || bitPosition == 2) return ERROR_FLAG; //Block reserved bits
 
 					reg = &TIMx_p -> TIM_CCER;
 					return ((*reg >> bitPosition) & 0b1);
@@ -576,14 +575,6 @@ uint32_t readTimer (uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
 				case TIM_ARR:
 					reg = &TIMx_p -> TIM_ARR;
 					return (*reg & 0xFFFF);
-				break;
-
-
-				case TIM_RCR:
-					if(bitPosition > 7) return ERROR_FLAG; //Block reserved bits
-
-					reg = &TIMx_p -> TIM_RCR;
-					return (*reg & 0xFF);
 				break;
 
 
@@ -611,28 +602,15 @@ uint32_t readTimer (uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
 				break;
 
 
-				case TIM_BDTR:
-					reg = &TIMx_p -> TIM_BDTR;
-					if(bitPosition == 0){
-						//DTG[7:0] at bit 0: bit 0 to 7 -> 1 byte
-						return (*reg & 0xFF);
-					}
-					else if(bitPosition == 8){
-						//LOCK[1:0] at bit 8: bit 8 to 9 -> 2 bits
-						return ((*reg >> bitPosition) & 0b11);
-					}
-					else return ((*reg >> bitPosition) & 0b1);
-				break;
-
 
 				case TIM_DCR:
-					if((bitPosition >= 5 && bitPosition <= 7) || (bitPosition >= 13 && bitPosition <= 15)) return ERROR_FLAG;
+					if((bitPosition >= 5 && bitPosition <= 7) || (bitPosition > 12)) return ERROR_FLAG;
 
 					reg = &TIMx_p -> TIM_DCR;
 					if(bitPosition == 0 || bitPosition == 8){
-						//DBA[4:0] at bit 0: bit 0 to 4 -> 5 bits
-						//DBL[4:0] at bit 8: bit 8 to 12 -> 5 bits
-						return(*reg & 0b11111);
+					//DBA[4:0] at bit 0: bit 0 to 4 -> 5 bits
+					//DBL[4:0] at bit 8: bit 8 to 12 -> 5 bits
+					return ((*reg >> bitPosition) & 0b11111);
 					}
 					else return ERROR_FLAG;
 				break;

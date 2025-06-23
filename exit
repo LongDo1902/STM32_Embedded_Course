@@ -1,0 +1,32 @@
+[33mb7c65b7[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m Unfinished readTimer()
+[33m6b2ce67[m Developing TIMER (1)
+[33ma22d4ef[m Developing Timer
+[33m0a523aa[m Updated Timer
+[33m05378bd[m Test Clone 1
+[33m70bd425[m Updated led, button, exti, uart, spi, timer
+[33m9cec40e[m completed LED, Interrupt, UART and SPI
+[33md3087cb[m Completed SPI
+[33m829c36c[m optimized program for SPI
+[33m1a0e503[m SPI read and optimized SPI program
+[33m100f0cc[m Basic init SPI and read received data SPI
+[33mece5904[m Developing SPI
+[33m9fc4915[m Completed UART and unfinished SPI
+[33m3080805[m UART fixed and Completed
+[33mfd60205[m UART and added GPIO_WriteFlash and readFlash in gpio_write_read files, and UART is unverified.
+[33m8a1786d[m UART part 1
+[33ma09187b[m Rename LEDs to leds
+[33mbaf8a9c[m Clean & optimize codes (registerAddress, gpio_write_read, LEDs, buttons, interrupt) and add uart
+[33m5878985[m Optimized program
+[33md50aa75[m Offset vector table and customized Interrupt function
+[33m6fdb07b[m Offset vector table and customized Interrupt Handler
+[33m0c4dcc4[m Offset vector table, redirect EXTI0_IRQHandler to a new offset address and customize EXTI0_IRQHandler
+[33m918607d[m Offset vector table, customize EXTI0_IRQHandler
+[33me48df33[m Completed l3gd20.h and solve the conflict
+[33mdd6e267[m Resolved conflict: Accepted deletion of L3GD20.h
+[33m94d6344[m Completed l3gd20.h
+[33me8720e5[m Delete Core/Inc/L3GD20.h
+[33m3fa5daf[m Completed l3gd20.h
+[33mb85de82[m New update
+[33ma0ca704[m Blinking LED and button interrupt
+[33m4ec1987[m Blinking LED and button interrupt
+[33m96bdd47[m LED and Button
