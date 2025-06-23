@@ -252,41 +252,41 @@ void SPI_misoPin_Init(GPIO_Pin_t misoPin, GPIO_PortName_t misoPort, SPI_Name_t S
 void writeSPI(uint8_t bitPosition, SPI_Name_t userSPIx, SPI_Mode_t mode, uint32_t value){
 	if(bitPosition > 15) return; //Condition to check false entered bitPosition
 
-	SPI_Register_Offset_t* SPIx;
+	SPI_Register_Offset_t* SPIx_p;
 	switch(userSPIx){
-		case my_SPI1: SPIx = SPI1_REG; break;
-		case my_SPI2: SPIx = SPI2_REG; break;
-		case my_SPI3: SPIx = SPI3_REG; break;
-		case my_SPI4: SPIx = SPI4_REG; break;
-		case my_SPI5: SPIx = SPI5_REG; break;
+		case my_SPI1: SPIx_p = SPI1_REG; break;
+		case my_SPI2: SPIx_p = SPI2_REG; break;
+		case my_SPI3: SPIx_p = SPI3_REG; break;
+		case my_SPI4: SPIx_p = SPI4_REG; break;
+		case my_SPI5: SPIx_p = SPI5_REG; break;
 		default: return;
 	}
 
 	volatile uint32_t* reg;
 
 	switch(mode){
-		case SPI_CR1: reg = &SPIx -> SPI_CR1; break;
+		case SPI_CR1: reg = &SPIx_p -> SPI_CR1; break;
 
 		case SPI_CR2:
 			if(bitPosition == 3 || bitPosition > 7) return; //These bits are reserved
-			reg = &SPIx -> SPI_CR2; break;
+			reg = &SPIx_p -> SPI_CR2; break;
 
 		case SPI_SR:
 			if(bitPosition > 9) return; //These bits are reserved
-			reg = &SPIx -> SPI_SR; break;
+			reg = &SPIx_p -> SPI_SR; break;
 
-		case SPI_DR: reg = &SPIx -> SPI_DR; break;
-		case SPI_CRC: reg = &SPIx -> SPI_CRC; break;
-		case SPI_RXCRCR: reg = &SPIx -> SPI_RXCRCR; break;
-		case SPI_TXCRCR: reg = &SPIx -> SPI_TXCRCR; break;
+		case SPI_DR: reg = &SPIx_p -> SPI_DR; break;
+		case SPI_CRC: reg = &SPIx_p -> SPI_CRC; break;
+		case SPI_RXCRCR: reg = &SPIx_p -> SPI_RXCRCR; break;
+		case SPI_TXCRCR: reg = &SPIx_p -> SPI_TXCRCR; break;
 
 		case SPI_I2SCFGR:
 			if(bitPosition == 6 || bitPosition > 11) return;
-			reg = &SPIx -> SPI_I2SCFGR; break;
+			reg = &SPIx_p -> SPI_I2SCFGR; break;
 
 		case SPI_I2SPR:
 			if(bitPosition > 9) return;
-			reg = &SPIx -> SPI_I2SPR; break;
+			reg = &SPIx_p -> SPI_I2SPR; break;
 
 		default: return;
 	}
@@ -326,40 +326,40 @@ void writeSPI(uint8_t bitPosition, SPI_Name_t userSPIx, SPI_Mode_t mode, uint32_
 uint16_t readSPI(uint8_t bitPosition, SPI_Name_t userSPIx, SPI_Mode_t mode){
 	const uint16_t ERROR_FLAG = 0xFFFF;
 
-	SPI_Register_Offset_t* SPIx;
+	SPI_Register_Offset_t* SPIx_p;
 	switch(userSPIx){
-		case my_SPI1: SPIx = SPI1_REG; break;
-		case my_SPI2: SPIx = SPI2_REG; break;
-		case my_SPI3: SPIx = SPI3_REG; break;
-		case my_SPI4: SPIx = SPI4_REG; break;
-		case my_SPI5: SPIx = SPI5_REG; break;
+		case my_SPI1: SPIx_p = SPI1_REG; break;
+		case my_SPI2: SPIx_p = SPI2_REG; break;
+		case my_SPI3: SPIx_p = SPI3_REG; break;
+		case my_SPI4: SPIx_p = SPI4_REG; break;
+		case my_SPI5: SPIx_p = SPI5_REG; break;
 		default: return ERROR_FLAG; //return an error value
 	}
 
 	volatile uint32_t* reg;
 	switch(mode){
-		case SPI_CR1: reg = &SPIx -> SPI_CR1; break;
+		case SPI_CR1: reg = &SPIx_p -> SPI_CR1; break;
 
 		case SPI_CR2:
 			if(bitPosition == 3 || bitPosition > 7) return ERROR_FLAG; //These bits are reserved
-			reg = &SPIx -> SPI_CR2; break;
+			reg = &SPIx_p -> SPI_CR2; break;
 
 		case SPI_SR:
 			if(bitPosition > 9) return ERROR_FLAG; //These bits are reserved
-			reg = &SPIx -> SPI_SR; break;
+			reg = &SPIx_p -> SPI_SR; break;
 
-		case SPI_DR: reg = &SPIx -> SPI_DR; break;
-		case SPI_CRC: reg = &SPIx -> SPI_CRC; break;
-		case SPI_RXCRCR: reg = &SPIx -> SPI_RXCRCR; break;
-		case SPI_TXCRCR: reg = &SPIx -> SPI_TXCRCR; break;
+		case SPI_DR: reg = &SPIx_p -> SPI_DR; break;
+		case SPI_CRC: reg = &SPIx_p -> SPI_CRC; break;
+		case SPI_RXCRCR: reg = &SPIx_p -> SPI_RXCRCR; break;
+		case SPI_TXCRCR: reg = &SPIx_p -> SPI_TXCRCR; break;
 
 		case SPI_I2SCFGR:
 			if(bitPosition == 6 || bitPosition > 11) return ERROR_FLAG;
-			reg = &SPIx -> SPI_I2SCFGR; break;
+			reg = &SPIx_p -> SPI_I2SCFGR; break;
 
 		case SPI_I2SPR:
 			if(bitPosition > 9) return ERROR_FLAG;
-			reg = &SPIx -> SPI_I2SPR; break;
+			reg = &SPIx_p -> SPI_I2SPR; break;
 
 		default: return ERROR_FLAG;
 	}
@@ -368,7 +368,7 @@ uint16_t readSPI(uint8_t bitPosition, SPI_Name_t userSPIx, SPI_Mode_t mode){
 	 * Condition to check if the Data Frame is 8 bits or 16 bits
 	 */
 	uint8_t is16BitFrame = 0; //Default, 8-bits data frame is chosen
-	if(((SPIx -> SPI_CR1) >> 11) & 1) is16BitFrame = 1; //user choose 16-bits data frame
+	if(((SPIx_p -> SPI_CR1) >> 11) & 1) is16BitFrame = 1; //user choose 16-bits data frame
 
 	if(mode == SPI_DR){
 		if(!is16BitFrame) return (uint8_t)(*reg & 0xFF); //Return DR as an 8-bits data

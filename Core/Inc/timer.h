@@ -57,6 +57,6 @@ typedef enum{
  */
 void writeTimer(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode, uint32_t value);
 
-char readTimer();
+uint32_t readTimer (uint8_t bitPosiion, TIM_Name_t userTIMx, TIM_Mode_t mode);
 
 #endif /* INC_TIMER_H_ */
