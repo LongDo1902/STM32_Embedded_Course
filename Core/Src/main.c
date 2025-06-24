@@ -8,6 +8,7 @@
 #include "interrupt.h"
 #include "uart.h"
 #include "spi.h"
+#include "timer.h"
 
 
 char session[15] = "EXTI";

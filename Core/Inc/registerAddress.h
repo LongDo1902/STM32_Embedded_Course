@@ -171,7 +171,11 @@ typedef struct{
 	volatile uint32_t TIM_DCR;		//0x48 (DMA Control Reg)
 	volatile uint32_t TIM_DMAR;		//0x4C (DMA Address for Full Transfer)
 
-	volatile uint32_t TIM_OR;		//0x50 (Option Reg) (TIM2/3/4/5/10/11)
+	union{	//0x50 (Option Reg) (TIM2 and TIM5 and TIM11)
+		volatile uint32_t TIM2_OR;
+		volatile uint32_t TIM5_OR;
+		volatile uint32_t TIM11_OR;
+	};
 }TIM_Register_Offset_t;
 
 /*

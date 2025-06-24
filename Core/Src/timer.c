@@ -4,12 +4,18 @@
  *  Created on: Jun 20, 2025
  *      Author: dobao
  */
+
 #include "timer.h"
 
+
 /*
- * @brief	Helper function to manipulate/write bit to specific bit position in TIMER's registers
+ * @brief	Writes a bit field into a specific TIM register at a given position,
+ * 			only if the register and bit are valid for the selected TIM peripheral
  *
- * @param
+ * @param	bitPosition		The starting bit position in the target register
+ * @param	userTIMx		The TIM peripheral (e.g., my_TIM1, my_TIM5, etc.)
+ * @param	mode			The specific register being written (e.g., TIM_CR1, TIM_EGR, etc.)
+ * @param	value			The value to write into the bit field
  */
 void writeTimer(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode, uint32_t value){
 	if(bitPosition > 31) return;
@@ -21,7 +27,8 @@ void writeTimer(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode, uint3
 		return;
 	}
 
-	TIM_Register_Offset_t* TIMx_p; //Timer pointer
+	TIM_Register_Offset_t* TIMx_p; //Timer Pointer
+
 	switch(userTIMx){
 		case my_TIM1: TIMx_p = TIM1_REG; break;
 		case my_TIM2: TIMx_p = TIM2_REG; break;
@@ -35,239 +42,158 @@ void writeTimer(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode, uint3
 	}
 
 	volatile uint32_t* reg;
-
 	switch(mode){
 
-		/*
-		 * TIMx_CR1:
-		 * 		TIM1 to TIM5: valid bits are [0:9]
-		 * 		TIM9 to TIM11: valid bits are [0:9 excluding bits 4 to 6 (Reserved)
-		 */
 		case TIM_CR1:
-			if((userTIMx >= my_TIM1 && userTIMx <= my_TIM5 && bitPosition <= 9) ||
-			   (userTIMx >= my_TIM9 && bitPosition <= 9 && !(bitPosition >= 4 && bitPosition <= 6))){
-				reg = &TIMx_p -> TIM_CR1; //Storing addr of that reg field in reg
-			}
-			else return;
+			if(isValidTimerBit(bitPosition, userTIMx, TIM_CR1)){
+				reg = &TIMx_p -> TIM_CR1;
+			} else return;
 		break;
 
 
-		/*
-		 * TIMx_CR2:
-		 * 		Only available in TIM1 to TIM5
-		 * 		Bits 1 and 15 are reserved
-		 */
 		case TIM_CR2:
-			if(userTIMx >= my_TIM1 && userTIMx <= my_TIM5 && bitPosition != 1 && bitPosition != 15){
+			if(isValidTimerBit(bitPosition, userTIMx, TIM_CR2)){
 				reg = &TIMx_p -> TIM_CR2;
-			}
-			else return;
+			} else return;
 		break;
 
 
-		/*
-		 * TIMx_SMCR:
-		 * 		Available in TIM1 to TIM5 and TIM9
-		 * 		Bit 3 is reserved for all
-		 * 		TIM9 has additional reserved bits [8:15]
-		 */
 		case TIM_SMCR:
-			if((userTIMx >= my_TIM1 && userTIMx <= my_TIM5 && bitPosition != 3) ||
-				(userTIMx == my_TIM9 && bitPosition != 3 && bitPosition <= 7)){
+			if(isValidTimerBit(bitPosition, userTIMx, TIM_SMCR)){
 				reg = &TIMx_p -> TIM_SMCR;
-			}
-			else return;
+			} else return;
 		break;
 
 
-		/*
-		 * TIMx_DIER:
-		 * 		TIM1: all bits valid except bit 15
-		 * 		TIM2 to TIM5: bits 5, 7, 13, 15 are reserved
-		 * 		TIM9: valid bits are 0, 1, 2, and 6
-		 * 		TIM10/11: only bits 0 and 1 are valid
-		 */
 		case TIM_DIER:
-			if((userTIMx == my_TIM1 && bitPosition != 15) ||
-			   ((userTIMx >= my_TIM2 && userTIMx <= my_TIM5) && bitPosition != 5 && bitPosition != 7 && bitPosition != 13 && bitPosition != 15) ||
-			   (userTIMx == my_TIM9 && (bitPosition <= 2 || bitPosition == 6)) ||
-			   ((userTIMx == my_TIM10 || userTIMx == my_TIM11) && bitPosition <= 1)){
+			if(isValidTimerBit(bitPosition, userTIMx, TIM_DIER)){
 				reg = &TIMx_p -> TIM_DIER;
-			}
-			else return;
+			} else return;
 		break;
 
 
-		/*
-		 * TIMx_SR
-		 * 		TIM1: bit 8 and bits > 12 are reserved
-		 * 		TIM2 to TIM5: valid bits <= 12 except 5, 7, 8
-		 * 		TIM9  to TIM11: valid bits <= 10 except 3, 4, 5, 7, 8
-		 */
 		case TIM_SR:
-			if((userTIMx == my_TIM1 && bitPosition <= 12 && bitPosition != 8) ||
-			   ((userTIMx >= my_TIM2 && userTIMx <= my_TIM5) && bitPosition <= 12 && (bitPosition != 5 && bitPosition != 7 && bitPosition != 8)) ||
-			   ((userTIMx >= my_TIM9 && userTIMx <= my_TIM11) && bitPosition <= 10 && (!(bitPosition >= 3 && bitPosition <= 5) && bitPosition != 7 && bitPosition != 8))){
+			if(isValidTimerBit(bitPosition, userTIMx, TIM_SR)){
 				reg = &TIMx_p -> TIM_SR;
-			}
-			else return;
+			} else return;
 		break;
 
 
-		/*
-		 * TIMx_EGR
-		 * 		TIM1: bits [0:7] are valid
-		 * 		TIM2 to TIM5: bits[0:6] valid except bit 5
-		 * 		TIM10/11: only bits 0 and 1 are valid
-		 */
 		case TIM_EGR:
-			if((userTIMx == my_TIM1 && bitPosition <= 7) ||
-			  ((userTIMx >= my_TIM2 && userTIMx <= my_TIM5) && bitPosition <= 6 && bitPosition != 5) ||
-			  ((userTIMx == my_TIM10 || userTIMx == my_TIM11) && bitPosition <= 1)){
+			if(isValidTimerBit(bitPosition, userTIMx, TIM_EGR)){
 				reg = &TIMx_p -> TIM_EGR;
-			}
-			else return;
+			} else return;
 		break;
 
 
-		/*
-		 * TIMx_CCER
-		 * 		TIM1: all bits valid except 14
-		 * 		TIM2 to TIM5: bits 2, 5, 6, 10, 14 are reserved
-		 * 		TIM9: valid bits <= 7 excluding 2, 6
-		 * 		TIM10/11: valid bits <= 3 excluding 2
-		 */
 		case TIM_CCER:
-			if((userTIMx == my_TIM1 && bitPosition != 14) ||
-			   ((userTIMx >= my_TIM2 && userTIMx <= my_TIM5) && bitPosition != 14 && bitPosition != 10 && bitPosition != 6 && bitPosition != 2) ||
-			   ((userTIMx == my_TIM9 && bitPosition <= 7 && bitPosition != 6 && bitPosition != 2) ||
-			   ((userTIMx == my_TIM10 || userTIMx == my_TIM11) && bitPosition <= 3 && bitPosition != 2))){
+			if(isValidTimerBit(bitPosition, userTIMx, TIM_CCER)){
 				reg = &TIMx_p -> TIM_CCER;
-			}
-
-			else return;
+			} else return;
 		break;
 
 
-		/*
-		 * TIMx_CNT, TIMx_PSC, TIMx_ARR
-		 * 		Alltimers have these registers
-		 * 		No reserved bits, canbe written freely
-		 */
-		case TIM_CNT:	reg = &TIMx_p -> TIM_CNT; break; //No reserved bits
-		case TIM_PSC:	reg = &TIMx_p -> TIM_PSC; break; //No reserved bits
-		case TIM_ARR:	reg = &TIMx_p -> TIM_ARR; break; //No reserved bits
+		case TIM_CNT:
+			if(isValidTimerBit(bitPosition, userTIMx, TIM_CNT)){
+				reg = &TIMx_p -> TIM_CNT;
+			} else return;
+		break;
 
 
-		/*
-		 * TIMx_RCR
-		 * 		Only available in TIM1
-		 * 		Bits [0:7] are valid
-		 */
-		case TIM_RCR: //Only available in TIMER1
-			if(userTIMx == my_TIM1 && bitPosition <= 7){
+		case TIM_PSC:
+			if(isValidTimerBit(bitPosition, userTIMx, TIM_PSC)){
+				reg = &TIMx_p -> TIM_PSC;
+			} else return;
+		break;
+
+
+		case TIM_ARR:
+			if(isValidTimerBit(bitPosition, userTIMx, TIM_ARR)){
+				reg = &TIMx_p -> TIM_ARR;
+			} else return;
+		break;
+
+
+		case TIM_RCR:
+			if(isValidTimerBit(bitPosition, userTIMx, TIM_RCR)){
 				reg = &TIMx_p -> TIM_RCR;
-			}
-			else return;
+			} else return;
 		break;
 
 
-		/*
-		 * TIMx_CCR1 is available on all timers
-		 */
-		case TIM_CCR1: reg = &TIMx_p -> TIM_CCR1; break; //All TIMERs have CCR1
+		case TIM_CCR1:
+			if(isValidTimerBit(bitPosition, userTIMx, TIM_CCR1)){
+				reg = &TIMx_p -> TIM_CCR1;
+			} else return;
+		break;
 
 
-		/*
-		 * TIMx_CCR2:
-		 * 		Not available on TIM10 and TIM11
-		 */
 		case TIM_CCR2:
-			if(!(userTIMx == my_TIM10 || userTIMx == my_TIM11)){ //Only TIMER1/2/3/4/5/9 have CCR2
+			if(isValidTimerBit(bitPosition, userTIMx, TIM_CCR2)){
 				reg = &TIMx_p -> TIM_CCR2;
-			}
-			else return;
+			} else return;
 		break;
 
 
-		/*
-		 * TIMx_CCR3:
-		 * 		Only available in TIM1 to TIM5
-		 */
 		case TIM_CCR3:
-			if(!(userTIMx >= my_TIM9)){ //Only TIMER1/2/3/4/5 have CCR3
+			if(isValidTimerBit(bitPosition, userTIMx, TIM_CCR3)){
 				reg = &TIMx_p -> TIM_CCR3;
-			}
-			else return;
+			} else return;
 		break;
 
 
-		/*
-		 * TIMx_CCR4:
-		 *  	Only available in TIM1 to TIM5
-		 */
 		case TIM_CCR4:
-			if(!(userTIMx >= my_TIM9)){ //Only TIMER1/2/3/4/5 have CCR4
+			if(isValidTimerBit(bitPosition, userTIMx, TIM_CCR4)){
 				reg = &TIMx_p -> TIM_CCR4;
-			}
-			else return;
+			} else return;
 		break;
 
 
-		/*
-		 * TIMx_BDTR:
-		 * 		Only available in TIM1
-		 */
 		case TIM_BDTR:
-			if(userTIMx == my_TIM1){
+			if(isValidTimerBit(bitPosition, userTIMx, TIM_BDTR)){
 				reg = &TIMx_p -> TIM_BDTR;
-			}
-			else return;
+			} else return;
 		break;
 
 
-		/*
-		 * TIMx_DCR:
-		 * 		Only available in TIM1 to TIM5
-		 * 		All have reserved bits in [5:7] and [13:15]
-		 */
 		case TIM_DCR:
-			if((userTIMx >= my_TIM1 && userTIMx <= my_TIM5) && !(bitPosition >= 5 && bitPosition <= 7) && !(bitPosition >= 13 && bitPosition <= 15)){
+			if(isValidTimerBit(bitPosition, userTIMx, TIM_DCR)){
 				reg = &TIMx_p -> TIM_DCR;
-			}
-			else return;
+			} else return;
 		break;
 
 
-		/*
-		 * TIMx_DMAR:
-		 * 		Only available in TIM1 to TIM5
-		 * 		Have no reserved bits
-		 */
 		case TIM_DMAR:
-			if(userTIMx >= my_TIM1 && userTIMx <= my_TIM5){
+			if(isValidTimerBit(bitPosition, userTIMx, TIM_DMAR)){
 				reg = &TIMx_p -> TIM_DMAR;
 			} else return;
 		break;
 
 
-		/*
-		 * TIMx_OR:
-		 * 		Only available in TIM2 and TIM5
-		 * 		TIM2 has valid bits at 10 and 11
-		 * 		TIM5 has valid bits at 6 and 7
-		 */
-		case TIM_OR:
-			if((userTIMx == my_TIM2 && bitPosition == 10 && bitPosition == 11) ||
-			   (userTIMx == my_TIM5 && bitPosition == 6 && bitPosition == 7)){
-				reg = &TIMx_p -> TIM_OR;
+		case TIM2_OR:
+			if(isValidTimerBit(bitPosition, userTIMx, TIM2_OR)){
+				reg = &TIMx_p -> TIM2_OR;
+			} else return;
+		break;
+
+
+		case TIM5_OR:
+			if(isValidTimerBit(bitPosition, userTIMx, TIM5_OR)){
+				reg = &TIMx_p -> TIM5_OR;
+			} else return;
+		break;
+
+
+		case TIM11_OR:
+			if(isValidTimerBit(bitPosition, userTIMx, TIM11_OR)){
+				reg = &TIMx_p -> TIM11_OR;
 			} else return;
 		break;
 
 		default: return;
 	}
 
-	//Auto detect bitwidth based on the "value" length
+	//Auto detect bitWidth based on the "value" length
 	uint32_t bitWidth = 0;
 	uint32_t temp = value;
 
@@ -276,11 +202,12 @@ void writeTimer(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode, uint3
 		temp = temp >> 1;
 	}
 
-	if (value == 0 && bitWidth == 0) bitWidth = 1;
-	if(bitPosition + bitWidth > 32) return; //prevent overflow
+	if(value == 0 && bitWidth == 0) bitWidth = 1;
+	if(bitPosition + bitWidth > 32) return; //Prevent overflow
+	if(bitWidth == 32 && bitPosition != 0) return; //C does not allow shifting more than or equal to the size of the type
 
-	//Mask off the old bit and or with the new bit
-	uint32_t mask = ((1U << bitWidth) -1U) << bitPosition;
+	//Mask off the old bit and OR with new bit
+	uint32_t mask = ((1U << bitWidth) - 1U) << bitPosition;
 	uint32_t shiftedValue = (value << bitPosition) & mask;
 	*reg = (*reg & ~mask) | shiftedValue;
 }
@@ -636,10 +563,4 @@ uint32_t readTimer (uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
 		case my_TIM11: TIMx_p = TIM11_REG; break;
 		default: return ERROR_FLAG;
 	}
-
-
-
-
-
 }
-
