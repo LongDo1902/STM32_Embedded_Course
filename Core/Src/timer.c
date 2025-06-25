@@ -215,9 +215,14 @@ void writeTimer(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode, uint3
 
 
 /*
- * @brief	Helper function
+ * @brief	Dynamically read bit(s) from a specific register of a selected TIM peripheral
  *
- * @param
+ * @param	bitPosition		Bit offset within the register (0-31)
+ * @param	userTIMx		Selected timer (my_TIM1 to my_TIM11)
+ * @param	mode			Register to read from
+ *
+ * @retval	The value of the selected bit field
+ * @retval	0xFFFFFFFF (ERROR_FLAG) if invalid bit/register/timer combo
  */
 uint32_t readTimer(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
 	const uint32_t ERROR_FLAG = 0xFFFFFFFF;
@@ -310,7 +315,7 @@ uint32_t readTimer(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
 					bitWidth = 4; //read 4 bits
 				}
 				else if((userTIMx >= my_TIM1 && userTIMx <= my_TIM5) && bitPosition == 12){
-					bitWidth = 2;
+					bitWidth = 2; //read 2 bits
 				}
 
 				return readBits(reg, bitPosition, bitWidth); //read 1 bit
