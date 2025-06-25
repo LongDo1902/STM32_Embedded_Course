@@ -215,10 +215,12 @@ void writeTimer(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode, uint3
 
 
 /*
- * @brief	Helper function to read...
+ * @brief	Helper function
+ *
+ * @param
  */
-uint32_t readTimer (uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
-	const uint16_t ERROR_FLAG = 0xFFFF;
+uint32_t readTimer(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
+	const uint16_t ERROR_FLAG = 0xDEADBEEF;
 
 	if(bitPosition > 31) return ERROR_FLAG;
 
@@ -232,6 +234,88 @@ uint32_t readTimer (uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
 	volatile uint32_t* reg;
 	TIM_Register_Offset_t* TIMx_p;
 
+	switch(userTIMx){
+		case my_TIM1: TIMx_p = TIM1_REG; break;
+		case my_TIM2: TIMx_p = TIM2_REG; break;
+		case my_TIM3: TIMx_p = TIM3_REG; break;
+		case my_TIM4: TIMx_p = TIM4_REG; break;
+		case my_TIM5: TIMx_p = TIM5_REG; break;
+		case my_TIM9: TIMx_p = TIM9_REG; break;
+		case my_TIM10: TIMx_p = TIM10_REG; break;
+		case my_TIM11: TIMx_p = TIM11_REG; break;
+		default: return ERROR_FLAG;
+	}
+
+	switch(mode){
+
+		case TIM_CR1:
+			if(isValidTimerBit(bitPosition, userTIMx, TIM_CR1)){
+				reg = &TIMx_p -> TIM_CR1;
+				/*
+				 * TIM1 to TIM5:
+				 * 		CMS[1:0] at bit 5
+				 * 		CKD[1:0] at bit 8
+				 *
+				 * TIM9 to TIM11:
+				 * 		CKD[1:0] at 8: bit 8 to 9 -> 2 bits
+				 */
+				if((userTIMx >= my_TIM1 && userTIMx <= my_TIM5) && (bitPosition == 8 || bitPosition == 5) ||
+				  ((userTIMx >= my_TIM9 && userTIMx <= my_TIM11) && bitPosition == 8)){
+					return((*reg >> bitPosition) & 0b11); //read 2 bits
+				} else return ((*reg >> bitPosition) &0b1);
+			} else return ERROR_FLAG;
+		break;
+
+
+		case TIM_CR2:
+			if(isValidTimerBit(bitPosition, userTIMx, TIM_CR2)){
+				reg = &TIMx_p -> TIM_CR2;
+				/*
+				 * TIM1 to TIM5:
+				 * 		MMS[2:0] at bit 4
+				 */
+				if((userTIMx >= my_TIM1 && userTIMx <= my_TIM5) && bitPosition == 4){
+					return ((*reg >> bitPosition) & 0b111); //read 3 bits
+				} else return ((*reg >> bitPosition) & 0b1);
+			} else return ERROR_FLAG;
+		break;
+
+
+		case TIM_SMCR:
+			if(isValidTimerBit(bitPosition, userTIMx, TIM_SMCR)){
+				reg = &TIMx_p -> TIM_SMCR;
+				/*
+				 * TIM1 to TIM5
+				 */
+			} else return ERROR_FLAG;
+		break;
+
+
+		default: return ERROR_FLAG;
+	}
+}
+
+
+
+
+
+/*
+ * @brief	Helper function to read...
+ */
+uint32_t readTimer1 (uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
+	const uint16_t ERROR_FLAG = 0xFFFF;
+
+	if(bitPosition > 31) return ERROR_FLAG;
+
+	//Due to the nature of CCMR register, which has input (capture mode) and output (compare mode)
+	//Same bits but different mode(input/output) will have different functions
+	if(mode == TIM_CCMR1 || mode == TIM_CCMR2){
+		printf("Use writeCCMR() instead.\n");
+		return ERROR_FLAG;
+	}
+
+	volatile uint32_t* reg;
+	TIM_Register_Offset_t* TIMx_p;
 
 	switch(userTIMx){
 		/*
@@ -564,3 +648,18 @@ uint32_t readTimer (uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
 		default: return ERROR_FLAG;
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
