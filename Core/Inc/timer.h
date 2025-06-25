@@ -12,7 +12,6 @@
 #include <stdbool.h>
 #include "registerAddress.h"
 
-
 typedef enum{
 	my_TIM1, //0
 	my_TIM2,
@@ -65,6 +64,31 @@ void writeTimer(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode, uint3
 uint32_t readTimer (uint8_t bitPosiion, TIM_Name_t userTIMx, TIM_Mode_t mode);
 
 
+
+/*
+ * @brief	Read a field of 'bitWidth' bits from a register starting at 'bitPosition'
+ *
+ * @param	reg (pointer) to the register
+ * @param	bitPosition		Starting bit position (0-31)
+ * @param	bitWidth		Number of bts needed to read (1 to 32)
+ *
+ * @return	Extracted value
+ */
+static inline uint32_t readBits(volatile uint32_t* reg, uint8_t bitPosition, uint8_t bitWidth){
+	return (*reg >> bitPosition) & ((1U << bitWidth) - 1);
+}
+
+
+
+/*
+ * @brief	check if a bit position in a specific TIMER's register is valid
+ *
+ * @param	bitPosition		Bit location (index) to check (0-31)
+ * @param	userTIMx 		my_TIM1 to my_TIM11 (timer instance)
+ * @param	mode			Target timer register (e.g., TIM_CR1, TIM_CR2, etc.)
+ *
+ * @return	true if the bit position is valid for the given timer and register, else returns false
+ */
 static inline bool isValidTimerBit(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
 	switch(mode){
 		/*
