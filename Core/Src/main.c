@@ -36,7 +36,7 @@ int main(void){
 		LED_Green_Init();
 
 		EXTI_TriggerConfig(0, my_EXTI_TRIGGER_BOTH); //Trigger interrupt for rising and falling
-		EXTI_Init(0, NVIC_ISER0, EXTI0);
+		EXTI_Init(0, NVIC_ISERx_BASE_ADDR, EXTI0);
 		EXTI_Offset_Init(desiredOffsetAddr);
 		user_EXTI_IRQHandler(EXTIFunction, 0x58);
 
@@ -92,18 +92,16 @@ int main(void){
 
 
 	else {
-		initTimer();
+		initTimer(my_TIM1);
 		LED_Red_Init();
+		LED_Blue_Init();
 
 		while(1){
-
+			LED_Control(LED_Red, 1);
+			delay_1s(my_TIM1);
+			LED_Control(LED_Red, 0);
+			delay_1s(my_TIM1);
 		}
-//		while(1){
-//			LED_Control(LED_Red, 1);
-//			delay_1s();
-//			LED_Control(LED_Red, 0);
-//			delay_1s();
-//		}
 	}
 }
 

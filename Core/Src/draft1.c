@@ -5,7 +5,7 @@
  *      Author: dobao
  */
 
-#include "interrupt.h"
+#include <exti.h>
 
 /*
  * Global parameter declaration
@@ -41,6 +41,7 @@ void EXTI_TriggerConfig(char bitPosition, EXTI_Trigger_t triggerMode){
 		return;
 	}
 }
+
 
 
 

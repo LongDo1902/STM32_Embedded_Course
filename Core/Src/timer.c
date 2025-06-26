@@ -7,28 +7,44 @@
 
 #include "timer.h"
 
+/*
+ * RCC provides 16MHz
+ * 		16M pulses per second
+ * 		1 pulse 0.0625us
+ */
 
-void initTimer(){
+/*
+ * TIM1 is 16-bit auto-reload counter (65535 counts)
+ * Counter +1 for every 0.0625us
+ * When counter = 65535 -> t = 4.1ms
+ *
+ * Prescaler 1 to 65535 fractor
+ */
 
-	/*
-	 * RCC provides 16MHz
-	 * 		16M pulses per second
-	 * 		1 pulse 0.0625us
-	 */
+void initTimer(TIM_Name_t userTIMx){
+	switch(userTIMx){
+		case my_TIM1: __HAL_RCC_TIM1_CLK_ENABLE(); break;
+		case my_TIM2: __HAL_RCC_TIM2_CLK_ENABLE(); break;
+		case my_TIM3: __HAL_RCC_TIM3_CLK_ENABLE(); break;
+		case my_TIM4: __HAL_RCC_TIM4_CLK_ENABLE(); break;
+		case my_TIM5: __HAL_RCC_TIM5_CLK_ENABLE(); break;
+		case my_TIM9: __HAL_RCC_TIM9_CLK_ENABLE(); break;
+		case my_TIM10: __HAL_RCC_TIM10_CLK_ENABLE(); break;
+		case my_TIM11: __HAL_RCC_TIM11_CLK_ENABLE(); break;
+		default: return;
+	}
+	writeTimer(0, userTIMx, TIM_PSC, 16000 - 1);
+	writeTimer(0, userTIMx, TIM_ARR, 1000);
 
-	/*
-	 * TIM1 is 16-bit auto-reload counter (65535 counts)
-	 * Counter +1 for every 0.0625us
-	 * When counter = 65535 -> t = 4.1ms
-	 *
-	 * Prescaler 1 to 65535 fractor
-	 */
+	writeTimer(0, userTIMx, TIM_DIER, SET); //DMA Interrupt Enable
+	writeTimer(0, userTIMx, TIM_CR1, SET); //Counter enabled
+}
 
-	//1sec
-	__HAL_RCC_TIM1_CLK_ENABLE();
-	writeTimer(0, my_TIM1, TIM_PSC, 16000 - 1);
-	writeTimer(0, my_TIM1, TIM_ARR, 1000);
-	writeTimer(0, my_TIM1, TIM_CR1, SET); //Counter enable
+
+
+void delay_1s(TIM_Name_t userTIMx){
+	while((readTimer(0, userTIMx, TIM_SR) & 1) == 0);
+	writeTimer(0, userTIMx, TIM_SR, RESET); //Clear the interrupt flag
 }
 
 
@@ -229,8 +245,16 @@ void writeTimer(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode, uint3
 	}
 
 	if(value == 0 && bitWidth == 0) bitWidth = 1;
-	if(bitPosition + bitWidth > 32) return; //Prevent overflow
-	if(bitWidth == 32 && bitPosition != 0) return; //C does not allow shifting more than or equal to the size of the type
+	if(bitWidth == 32 && bitPosition != 0) return; //C does not allow shifting more than or equal to the size of the typess
+
+	/*
+	 * ARR has a default reset value of 0xFFFF
+	 * Since it's typically written as a full 16-bit value (not bit-masked) -> write directly
+	 */
+	if(mode == TIM_ARR){
+		*reg = value;
+		return;
+	}
 
 	//Mask off the old bit and OR with new bit
 	uint32_t mask = ((1U << bitWidth) - 1U) << bitPosition;

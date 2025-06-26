@@ -27,6 +27,30 @@
 #define EXTI_BASE_ADDR 0x40013C00UL
 
 /*
+ * NVIC Registers (Cortex-M4 Ref Manual)
+ */
+#define NVIC_ISERx_BASE_ADDR 0xE000E100UL
+#define NVIC_ICERx_BASE_ADDR 0xE000E180UL
+#define NVIC_ISPRx_BASE_ADDR 0xE000E200UL
+#define NVIC_ICPRx_BASE_ADDR 0xE000E280UL
+#define NVIC_IABRx_BASE_ADDR 0xE000E300UL
+#define NVIC_IPRx_BASE_ADDR	 0xE000E300UL
+
+/*
+ * VTOR (Vector Table Offset Reg) (Cortex-M4 ref manual)
+ */
+#define VTO_REG ((volatile uint32_t*)(0xE000ED08))
+
+/*
+ * Custom symbolic addresses for EXTI IRQ vector labels
+ */
+#define EXTI0_ADDR 0x58
+#define EXTI1_ADDR 0x5C
+#define EXTI2_ADDR 0x60
+#define EXTI3_ADDR 0x64
+
+
+/*
  * UART base addresses
  */
 #define UART1_BASE_ADDR 0x40011000UL
@@ -66,7 +90,6 @@
  */
 #define FLASH_INTF_REG_ADDR 0x40023800UL
 ////////////END OF BASE ADDRESSES////////////
-
 
 
 /*
@@ -196,46 +219,46 @@ typedef struct {
 /*
  * GPIOs Reg Pointers
  */
-#define GPIOA_REG ((GPIO_Register_Offset_t*)GPIOA_BASE_ADDR)
-#define GPIOB_REG ((GPIO_Register_Offset_t*)GPIOB_BASE_ADDR)
-#define GPIOC_REG ((GPIO_Register_Offset_t*)GPIOC_BASE_ADDR)
-#define GPIOD_REG ((GPIO_Register_Offset_t*)GPIOD_BASE_ADDR)
-#define GPIOE_REG ((GPIO_Register_Offset_t*)GPIOE_BASE_ADDR)
-#define GPIOH_REG ((GPIO_Register_Offset_t*)GPIOH_BASE_ADDR)
+#define GPIOA_REG ((volatile GPIO_Register_Offset_t*)GPIOA_BASE_ADDR)
+#define GPIOB_REG ((volatile GPIO_Register_Offset_t*)GPIOB_BASE_ADDR)
+#define GPIOC_REG ((volatile GPIO_Register_Offset_t*)GPIOC_BASE_ADDR)
+#define GPIOD_REG ((volatile GPIO_Register_Offset_t*)GPIOD_BASE_ADDR)
+#define GPIOE_REG ((volatile GPIO_Register_Offset_t*)GPIOE_BASE_ADDR)
+#define GPIOH_REG ((volatile GPIO_Register_Offset_t*)GPIOH_BASE_ADDR)
 
 /*
  * EXTI Reg Pointers
  */
-#define EXTI_REG ((EXTI_Register_Offset_t*)EXTI_BASE_ADDR)
+#define EXTI_REG ((volatile EXTI_Register_Offset_t*)EXTI_BASE_ADDR)
 
 /*
  * UART Reg Pointers
  */
-#define UART1_REG ((UART_Register_Offset_t*)UART1_BASE_ADDR)
-#define UART2_REG ((UART_Register_Offset_t*)UART2_BASE_ADDR)
-#define UART6_REG ((UART_Register_Offset_t*)UART6_BASE_ADDR)
+#define UART1_REG ((volatile UART_Register_Offset_t*)UART1_BASE_ADDR)
+#define UART2_REG ((volatile UART_Register_Offset_t*)UART2_BASE_ADDR)
+#define UART6_REG ((volatile UART_Register_Offset_t*)UART6_BASE_ADDR)
 
 /*
  * SPI Reg Pointers
  */
-#define SPI1_REG ((SPI_Register_Offset_t*)SPI1_BASE_ADDR)
-#define SPI2_REG ((SPI_Register_Offset_t*)SPI2_BASE_ADDR)
-#define SPI3_REG ((SPI_Register_Offset_t*)SPI3_BASE_ADDR)
-#define SPI4_REG ((SPI_Register_Offset_t*)SPI4_BASE_ADDR)
-#define SPI5_REG ((SPI_Register_Offset_t*)SPI5_BASE_ADDR)
+#define SPI1_REG ((volatile SPI_Register_Offset_t*)SPI1_BASE_ADDR)
+#define SPI2_REG ((volatile SPI_Register_Offset_t*)SPI2_BASE_ADDR)
+#define SPI3_REG ((volatile SPI_Register_Offset_t*)SPI3_BASE_ADDR)
+#define SPI4_REG ((volatile SPI_Register_Offset_t*)SPI4_BASE_ADDR)
+#define SPI5_REG ((volatile SPI_Register_Offset_t*)SPI5_BASE_ADDR)
 
 /*
  * TIMER1 Reg Pointers
  */
-#define TIM1_REG ((TIM_Register_Offset_t*)TIM1_BASE_ADDR)
-#define TIM2_REG ((TIM_Register_Offset_t*)TIM2_BASE_ADDR)
-#define TIM3_REG ((TIM_Register_Offset_t*)TIM3_BASE_ADDR)
-#define TIM4_REG ((TIM_Register_Offset_t*)TIM4_BASE_ADDR)
-#define TIM5_REG ((TIM_Register_Offset_t*)TIM5_BASE_ADDR)
+#define TIM1_REG ((volatile TIM_Register_Offset_t*)TIM1_BASE_ADDR)
+#define TIM2_REG ((volatile TIM_Register_Offset_t*)TIM2_BASE_ADDR)
+#define TIM3_REG ((volatile TIM_Register_Offset_t*)TIM3_BASE_ADDR)
+#define TIM4_REG ((volatile TIM_Register_Offset_t*)TIM4_BASE_ADDR)
+#define TIM5_REG ((volatile TIM_Register_Offset_t*)TIM5_BASE_ADDR)
 
-#define TIM9_REG ((TIM_Register_Offset_t*)TIM9_BASE_ADDR)
-#define TIM10_REG ((TIM_Register_Offset_t*)TIM10_BASE_ADDR)
-#define TIM11_REG ((TIM_Register_Offset_t*)TIM11_BASE_ADDR)
+#define TIM9_REG ((volatile TIM_Register_Offset_t*)TIM9_BASE_ADDR)
+#define TIM10_REG ((volatile TIM_Register_Offset_t*)TIM10_BASE_ADDR)
+#define TIM11_REG ((volatile TIM_Register_Offset_t*)TIM11_BASE_ADDR)
 
 /*
  * Flash Reg Pointers
@@ -245,100 +268,7 @@ typedef struct {
 
 
 
-/*
- * Vector Table Positions
- */
-typedef enum{
-	//Group 1
-	WWDG_user = 0,
-	EXTI16_PVD,
-	EXTI21_TAMP_STAMP,
-	EXTI22_RTC_WKUP,
-	FLASH_user,
-	RCC_user,
-	EXTI0 = 6,
-	EXTI1,
-	EXTI2,
-	EXTI3,
-	EXTI4,
-	DMA1_S0,
-	DMA1_S1,
-	DMA1_S2,
-	DMA1_S3,
-	DMA1_S4,
-	DMA1_S5,
-	DMA1_S6,
-	ADC_user,
-
-	//Group 2
-	EXTI9_5 = 23,
-	TIM1_BRK_TIM9,
-	TIM1_UP_TIM10,
-	TIM1_TGR_COM_TIM11,
-	TIM1_CC,
-	TIM2_user,
-	TIM3_user,
-	TIM4_user,
-	I2C1_EV,
-	I2C1_ER,
-	I2C2_EV,
-	I2C2_ER,
-	SPI1_user,
-	SPI2_user,
-	UART1,
-	UART2,
-
-	//Group 3
-	EXTI15_10 = 40,
-	EXTI17_RTC_ALARM,
-	EXTI18_OTG_FS_WKUP,
-	DMA1_S7 = 47,
-	SDIO_user = 49,
-	TIM5_user,
-	SPI3_user,
-	DMA2_S0	= 56,
-	DMA2_S1,
-	DMA2_S2,
-	DMA2_S3,
-	DMA2_S4,
-	OTG_FS = 67,
-	DMA2_S5,
-	DMA2_S6,
-	DMA2_S7,
-	UART6,
-	I2C3_EV,
-	I2C3_ER,
-	FPU_user = 81,
-	SPI4_user = 84,
-	SPI5_user = 85
-}IQRn_User_t;
 ////////////END OF ENUM////////////
-
-/*
- * Custom symbolic addresses for EXTI IRQ vector labels
- */
-#define EXTI0_ADDR 0x58
-#define EXTI1_ADDR 0x5C
-#define EXTI2_ADDR 0x60
-#define EXTI3_ADDR 0x64
-
-/*
- * NVIC - Interrupt Set-Enable Reg (Cortex-M4 Ref Manual)
- */
-#define NVIC_ISER0 ((volatile uint32_t*)0xE000E100)
-#define NVIC_ISER1 ((volatile uint32_t*)0xE000E104)
-#define NVIC_ISER2 ((volatile uint32_t*)0xE000E108)
-#define NVIC_ISER3 ((volatile uint32_t*)0xE000E10C)
-#define NVIC_ISER4 ((volatile uint32_t*)0xE000E110)
-#define NVIC_ISER5 ((volatile uint32_t*)0xE000E114)
-#define NVIC_ISER6 ((volatile uint32_t*)0xE000E118)
-#define NVIC_ISER7 ((volatile uint32_t*)0xE000E11C)
-
-/*
- * VTOR (Vector Table Offset Reg) (Cortex-M4 ref manual)
- */
-#define VTO_REG ((volatile uint32_t*)(0xE000ED08))
-///////////////END OF ADDRESSES DEFINES///////////////
 
 
 

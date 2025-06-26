@@ -60,9 +60,9 @@ typedef enum{
 /*
  * Function declarations
  */
-void initTimer();
+void initTimer(TIM_Name_t userTIMx);
 
-void delay_1s();
+void delay_1s(TIM_Name_t userTIMx);
 
 void writeTimer(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode, uint32_t value);
 
