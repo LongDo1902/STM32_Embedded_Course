@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "registerAddress.h"
+#include "stm32f4xx.h"
 
 typedef enum{
 	my_TIM1, //0
@@ -59,6 +60,10 @@ typedef enum{
 /*
  * Function declarations
  */
+void initTimer();
+
+void delay_1s();
+
 void writeTimer(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode, uint32_t value);
 
 uint32_t readTimer (uint8_t bitPosiion, TIM_Name_t userTIMx, TIM_Mode_t mode);

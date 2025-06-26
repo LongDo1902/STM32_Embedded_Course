@@ -11,7 +11,7 @@
 #include "timer.h"
 
 
-char session[15] = "EXTI";
+char session[15] = "TIMER";
 int LED_Delay = 400;
 uint32_t* desiredOffsetAddr = (uint32_t*)0x20000000;
 
@@ -29,7 +29,6 @@ void EXTIFunction(){
 
 int main(void){
 	HAL_Init();
-
 
 	if(strcmp(session, "EXTI") == 0){
 		buttonInit(0, my_GPIOA);
@@ -49,7 +48,7 @@ int main(void){
 		}
 	}
 
-	if(strcmp(session, "UART") == 0){
+	else if(strcmp(session, "UART") == 0){
 		LED_Red_Init();
 		UART_Init(my_GPIO_PIN_6, my_GPIO_PIN_7, my_GPIOB, my_UART1, 9600, PARITY_ODD, WORDLENGTH_9B);
 		while(1){
@@ -64,7 +63,7 @@ int main(void){
 		}
 	}
 
-	if(strcmp(session, "SPI") == 0){
+	else if(strcmp(session, "SPI") == 0){
 
 		SPI_GPIO_Config_t spiConfig = {
 			.SPIx = my_SPI1,
@@ -90,4 +89,55 @@ int main(void){
 		SPI_write2Device(spiConfig, 0x20, 0x0F);
 		spiRead2 = SPI_readReceivedData(spiConfig, 0x20);
 	}
+
+
+	else {
+		initTimer();
+		LED_Red_Init();
+
+		while(1){
+
+		}
+//		while(1){
+//			LED_Control(LED_Red, 1);
+//			delay_1s();
+//			LED_Control(LED_Red, 0);
+//			delay_1s();
+//		}
+	}
 }
+
+//#include <stdio.h>
+//#include "timer.h"
+//#include "stm32f4xx_hal.h"
+//
+//int main(void){
+//	__HAL_RCC_TIM1_CLK_ENABLE();
+//	writeTimer(0, my_TIM1, TIM_PSC, (1600 - 1));
+//	while(1){
+//
+//	}
+//}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
