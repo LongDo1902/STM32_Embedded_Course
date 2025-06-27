@@ -10,14 +10,9 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include "stm32f4xx_hal.h"
 #include "registerAddress.h"
-
-
-/*
- * Collections of EXTI Offset Register Name
- */
-typedef enum{IMR, EMR, RTSR, FTSR, SWIER, PR}EXTI_Mode_t;
 
 
 /*
@@ -88,21 +83,45 @@ typedef enum{
 	SPI5_user = 85
 }IQRn_Pos_t;
 
+//typedef enum{
+//	NVIC_ISER, 	//Interrupt Set-Enable Reg
+//	NVIC_ICER, 	//Intertupt Clear-Enable Reg
+//	NVIC_ISPR, 	//Interrupt Set-Pending Reg
+//	NVIC_ICPR,	//Interrupt Clear-Pending Reg
+//	NVIC_IABR,	//Interrupt Active Bit Reg
+//	NVIC_IPR	//Interrupt Priority Reg
+//}NVIC_Name_t;
+
+/*
+ * Collections of EXTI Offset Register Name
+ */
+typedef enum{IMR, EMR, RTSR, FTSR, SWIER, PR}EXTI_Mode_t;
+
+/*
+ * List of EXTI trigger modes
+ */
 typedef enum{
-	NVIC_ISER, 	//Interrupt Set-Enable Reg
-	NVIC_ICER, 	//Intertupt Clear-Enable Reg
-	NVIC_ISPR, 	//Interrupt Set-Pending Reg
-	NVIC_ICPR,	//Interrupt Clear-Pending Reg
-	NVIC_IABR,	//Interrupt Active Bit Reg
-	NVIC_IPR	//Interrupt Priority Reg
-}NVIC_Name_t;
+	my_EXTI_TRIGGER_RISING,
+	my_EXTI_TRIGGER_FALLING,
+	my_EXTI_TRIGGER_BOTH
+}EXTI_Trigger_t;
 
 
 /*
- * FUNCTIONS DECLARATION
+ * List of function declarations
  */
-void NVIC_enableIRQ(uint16_t irqNumber, NVIC_Name_t nvicName);
-void NVIC_disableIRQ(uint32_t irqNumber, NVIC_Name_t nvicName);
-void NVIC_writeIPR(uint16_t irqNumber, uint8_t priority);
+void NVIC_enableIRQ(IQRn_Pos_t irqNumber);
+void NVIC_disableIRQ(IQRn_Pos_t irqNumber);
+void NVIC_writeIPR(IQRn_Pos_t irqNumber, uint8_t priority);
+void writeEXTI(uint8_t bitPosition, EXTI_Mode_t mode, FlagStatus state);
+void EXTI_Init(char bitPosition, EXTI_Trigger_t triggerMode, IQRn_Pos_t irqNumber);
+
+/*
+ * @brief	Helper function to check if an EXTI bit position is valid (not reserved / is valid)
+ */
+static inline bool isValidEXTIBits(uint8_t bitPosition){
+	return (bitPosition <= 18 || bitPosition == 21 || bitPosition == 22);
+}
+
 
 #endif /* INC_EXTI_H_ */

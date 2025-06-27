@@ -94,11 +94,11 @@ typedef struct{
 /*
  * Function Declarations
  */
-void SPI_sckPin_Init(GPIO_Pin_t sckPin, GPIO_PortName_t sckPort, SPI_Name_t SPIx);
-void SPI_mosiPin_Init(GPIO_Pin_t mosiPin, GPIO_PortName_t mosiPort, SPI_Name_t SPIx);
-void SPI_misoPin_Init(GPIO_Pin_t misoPin, GPIO_PortName_t misoPort, SPI_Name_t SPIx);
+void SPI_sckPin_init(GPIO_Pin_t sckPin, GPIO_PortName_t sckPort, SPI_Name_t SPIx);
+void SPI_mosiPin_init(GPIO_Pin_t mosiPin, GPIO_PortName_t mosiPort, SPI_Name_t SPIx);
+void SPI_misoPin_init(GPIO_Pin_t misoPin, GPIO_PortName_t misoPort, SPI_Name_t SPIx);
 
-void SPI_GPIO_Init(SPI_GPIO_Config_t pinConfig);
+void SPI_GPIO_init(SPI_GPIO_Config_t pinConfig);
 
 void SPI_basicConfigInit(SPI_GPIO_Config_t config,
 						 SPI_MSTR_t masterSlaveSel,

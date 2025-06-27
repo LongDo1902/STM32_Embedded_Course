@@ -8,6 +8,7 @@
 #include "uart.h"
 #include "spi.h"
 #include "timer.h"
+#include "exti.h"
 
 
 char session[15] = "TIMER";
@@ -81,7 +82,7 @@ int main(void){
 			.misoPort = my_GPIOA
 		};
 
-		SPI_GPIO_Init(spiConfig);
+		SPI_GPIO_init(spiConfig);
 		SPI_basicConfigInit(spiConfig, STM32_MASTER, DFF_8BITS, FPCLK_DIV16, SOFTWARE_SLAVE_ENABLE, SPI_ENABLE);
 		char spiRead1 = SPI_readReceivedData(spiConfig, 0x0F);
 		char spiRead2 = SPI_readReceivedData(spiConfig, 0x20);
@@ -97,10 +98,10 @@ int main(void){
 		LED_Blue_Init();
 
 		while(1){
-			LED_Control(LED_Red, 1);
-			delay_1s(my_TIM1);
-			LED_Control(LED_Red, 0);
-			delay_1s(my_TIM1);
+//			LED_Control(LED_Red, 1);
+//			delay_1s(my_TIM1);
+//			LED_Control(LED_Red, 0);
+//			delay_1s(my_TIM1);
 		}
 	}
 }

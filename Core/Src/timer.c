@@ -42,16 +42,16 @@ void initTimer(TIM_Name_t userTIMx){
 
 
 
-int timeCnt = 0;
-void TIM1_UP_TIM10_IRQHandler(){
-	timeCnt++;
-	writeTimer(0, my_TIM1, TIM_SR, RESET); //Clear the interrupt flag
-}
-
-void delay(int ms){
-	timeCnt = 0;
-	while(timeCnt < ms);
-}
+//int timeCnt = 0;
+//void TIM1_UP_TIM10_IRQHandler(){
+//	timeCnt++;
+//	writeTimer(0, my_TIM1, TIM_SR, RESET); //Clear the interrupt flag
+//}
+//
+//void delay(int ms){
+//	timeCnt = 0;
+//	while(timeCnt < ms);
+//}
 
 /*
  * @brief	Writes a bit field into a specific TIM register at a given position,

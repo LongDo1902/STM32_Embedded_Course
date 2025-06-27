@@ -82,7 +82,7 @@ void SPI_write2Device(SPI_GPIO_Config_t config, char slaveDeviceAddr, char write
 /*
  *  @brief	Initializes the selected SPI peripheral and its SCK, MOSI, MISO pins.
  */
-void SPI_GPIO_Init(SPI_GPIO_Config_t config){
+void SPI_GPIO_init(SPI_GPIO_Config_t config){
 
 	Enable_GPIO_Clock(config.sckPort);
 	Enable_GPIO_Clock(config.nssPort);
@@ -91,9 +91,9 @@ void SPI_GPIO_Init(SPI_GPIO_Config_t config){
 
 	writePin(config.nssPin, config.nssPort, MODER, mode_01); //Set NSS pin as output
 
-	SPI_sckPin_Init(config.sckPin, config.sckPort, config.SPIx);
-	SPI_mosiPin_Init(config.mosiPin, config.mosiPort, config.SPIx);
-	SPI_misoPin_Init(config.misoPin, config.misoPort, config.SPIx);
+	SPI_sckPin_init(config.sckPin, config.sckPort, config.SPIx);
+	SPI_mosiPin_init(config.mosiPin, config.mosiPort, config.SPIx);
+	SPI_misoPin_init(config.misoPin, config.misoPort, config.SPIx);
 }
 
 
@@ -156,7 +156,7 @@ void SPI_basicConfigInit(SPI_GPIO_Config_t config,
  * @param	sckPort		Port of the SCK pin
  * @param	SPIx		Target SPI (e.g., my_SPI1)
  */
-void SPI_sckPin_Init(GPIO_Pin_t sckPin, GPIO_PortName_t sckPort, SPI_Name_t SPIx){
+void SPI_sckPin_init(GPIO_Pin_t sckPin, GPIO_PortName_t sckPort, SPI_Name_t SPIx){
 	writePin(sckPin, sckPort, MODER, mode_02); //Config this pin in MODER to Alternate Function mode for SPI interface
 	GPIO_Mode_t afrRegSck = (sckPin <= 7) ? AFRL : AFRH; //Check which AF reg (AFRL or AFRH) is chosen corresponding to pin number
 
@@ -186,7 +186,7 @@ void SPI_sckPin_Init(GPIO_Pin_t sckPin, GPIO_PortName_t sckPort, SPI_Name_t SPIx
  * @param	mosiPort	Port of the mosi pin
  * @param	SPIx		Target SPI (e.g., my_SPI1)
  */
-void SPI_mosiPin_Init(GPIO_Pin_t mosiPin, GPIO_PortName_t mosiPort, SPI_Name_t SPIx){
+void SPI_mosiPin_init(GPIO_Pin_t mosiPin, GPIO_PortName_t mosiPort, SPI_Name_t SPIx){
 	writePin(mosiPin, mosiPort, MODER, mode_02); //Config this pin in MODER to Alternate Function mode for SPI interface
 	GPIO_Mode_t afrRegMosi = (mosiPin <= 7) ? AFRL : AFRH; //Check which AF reg (AFRL or AFRH) is chosen corresponding to pin number
 
@@ -217,7 +217,7 @@ void SPI_mosiPin_Init(GPIO_Pin_t mosiPin, GPIO_PortName_t mosiPort, SPI_Name_t S
  * @param	misoPort	Port of the MISO pin
  * @param	SPIx		Target SPI (e.g., my_SPI1)
  */
-void SPI_misoPin_Init(GPIO_Pin_t misoPin, GPIO_PortName_t misoPort, SPI_Name_t SPIx){
+void SPI_misoPin_init(GPIO_Pin_t misoPin, GPIO_PortName_t misoPort, SPI_Name_t SPIx){
 	writePin(misoPin, misoPort, MODER, mode_02);
 	GPIO_Mode_t afrRegMiso = (misoPin <= 7) ? AFRL : AFRH;
 
