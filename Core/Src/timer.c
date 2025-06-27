@@ -21,6 +21,7 @@
  * Prescaler 1 to 65535 fractor
  */
 
+
 void initTimer(TIM_Name_t userTIMx){
 	switch(userTIMx){
 		case my_TIM1: __HAL_RCC_TIM1_CLK_ENABLE(); break;
@@ -34,20 +35,23 @@ void initTimer(TIM_Name_t userTIMx){
 		default: return;
 	}
 	writeTimer(0, userTIMx, TIM_PSC, 16000 - 1);
-	writeTimer(0, userTIMx, TIM_ARR, 1000);
-
+	writeTimer(0, userTIMx, TIM_ARR, 1); //Trigger every 1ms
 	writeTimer(0, userTIMx, TIM_DIER, SET); //DMA Interrupt Enable
 	writeTimer(0, userTIMx, TIM_CR1, SET); //Counter enabled
 }
 
 
 
-void delay_1s(TIM_Name_t userTIMx){
-	while((readTimer(0, userTIMx, TIM_SR) & 1) == 0);
-	writeTimer(0, userTIMx, TIM_SR, RESET); //Clear the interrupt flag
+int timeCnt = 0;
+void TIM1_UP_TIM10_IRQHandler(){
+	timeCnt++;
+	writeTimer(0, my_TIM1, TIM_SR, RESET); //Clear the interrupt flag
 }
 
-
+void delay(int ms){
+	timeCnt = 0;
+	while(timeCnt < ms);
+}
 
 /*
  * @brief	Writes a bit field into a specific TIM register at a given position,

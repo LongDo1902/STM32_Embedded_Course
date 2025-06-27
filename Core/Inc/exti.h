@@ -9,7 +9,16 @@
 #define INC_EXTI_H_
 
 #include <stdio.h>
+#include <stdint.h>
+#include "stm32f4xx_hal.h"
 #include "registerAddress.h"
+
+
+/*
+ * Collections of EXTI Offset Register Name
+ */
+typedef enum{IMR, EMR, RTSR, FTSR, SWIER, PR}EXTI_Mode_t;
+
 
 /*
  * Vector Table Positions
@@ -78,5 +87,22 @@ typedef enum{
 	SPI4_user = 84,
 	SPI5_user = 85
 }IQRn_Pos_t;
+
+typedef enum{
+	NVIC_ISER, 	//Interrupt Set-Enable Reg
+	NVIC_ICER, 	//Intertupt Clear-Enable Reg
+	NVIC_ISPR, 	//Interrupt Set-Pending Reg
+	NVIC_ICPR,	//Interrupt Clear-Pending Reg
+	NVIC_IABR,	//Interrupt Active Bit Reg
+	NVIC_IPR	//Interrupt Priority Reg
+}NVIC_Name_t;
+
+
+/*
+ * FUNCTIONS DECLARATION
+ */
+void NVIC_enableIRQ(uint16_t irqNumber, NVIC_Name_t nvicName);
+void NVIC_disableIRQ(uint32_t irqNumber, NVIC_Name_t nvicName);
+void NVIC_writeIPR(uint16_t irqNumber, uint8_t priority);
 
 #endif /* INC_EXTI_H_ */

@@ -8,7 +8,7 @@
 #ifndef INC_RES_ADDR_H_
 #define INC_RES_ADDR_H_
 
-#include<stdio.h>
+#include <stdio.h>
 #include <stdint.h>
 
 /*
@@ -20,35 +20,6 @@
 #define GPIOD_BASE_ADDR 0x40020C00UL
 #define GPIOE_BASE_ADDR 0x40021000UL
 #define GPIOH_BASE_ADDR 0x40021C00UL
-
-/*
- * EXTI base address
- */
-#define EXTI_BASE_ADDR 0x40013C00UL
-
-/*
- * NVIC Registers (Cortex-M4 Ref Manual)
- */
-#define NVIC_ISERx_BASE_ADDR 0xE000E100UL
-#define NVIC_ICERx_BASE_ADDR 0xE000E180UL
-#define NVIC_ISPRx_BASE_ADDR 0xE000E200UL
-#define NVIC_ICPRx_BASE_ADDR 0xE000E280UL
-#define NVIC_IABRx_BASE_ADDR 0xE000E300UL
-#define NVIC_IPRx_BASE_ADDR	 0xE000E300UL
-
-/*
- * VTOR (Vector Table Offset Reg) (Cortex-M4 ref manual)
- */
-#define VTO_REG ((volatile uint32_t*)(0xE000ED08))
-
-/*
- * Custom symbolic addresses for EXTI IRQ vector labels
- */
-#define EXTI0_ADDR 0x58
-#define EXTI1_ADDR 0x5C
-#define EXTI2_ADDR 0x60
-#define EXTI3_ADDR 0x64
-
 
 /*
  * UART base addresses
@@ -84,6 +55,29 @@
 #define TIM9_BASE_ADDR 	0x40014000UL
 #define TIM10_BASE_ADDR	0x40014400UL
 #define TIM11_BASE_ADDR	0x40014800UL
+
+/*
+ * EXTI base address
+ */
+#define EXTI_BASE_ADDR 0x40013C00UL
+
+/*
+ * NVIC Registers (Cortex-M4 Ref Manual)
+ */
+#define NVIC_BASE_ADDR 0xE000E100UL
+
+/*
+ * VTOR (Vector Table Offset Reg) (Cortex-M4 ref manual)
+ */
+#define VTO_REG ((volatile uint32_t*)(0xE000ED08))
+
+/*
+ * Custom symbolic addresses for EXTI IRQ vector labels
+ */
+#define EXTI0_ADDR 0x58
+#define EXTI1_ADDR 0x5C
+#define EXTI2_ADDR 0x60
+#define EXTI3_ADDR 0x64
 
 /*
  * FLASH INTERFACE REG ADDR
@@ -213,6 +207,22 @@ typedef struct {
 	volatile uint32_t FLASH_OPTCR;		//0x14 (Flash Option Control Reg)
 }Flash_IntF_Register_Offset_t;
 
+/*
+ *
+ */
+typedef struct{
+	volatile uint32_t _ISER[8];		//0xE000E100 (Interrupt Set Enable Reg)
+	uint32_t RESERVED0[24]; 	//Reserved gap (0xE000E120 to 0xE000E17F)
+	volatile uint32_t _ICER[8]; 	//0xE000E180 (Interrupt Clear-Enable Reg)
+	uint32_t RESERVED1[24];
+	volatile uint32_t _ISPR[8]; 	//0xE000E200 (Interrupt Set Pending Reg)
+	uint32_t RESERVED2[24];
+	volatile uint32_t _ICPR[8]; 	//0xE000E280 (Interrupt Clear-Pending Reg)
+	uint32_t RESERVED3[24];
+	volatile uint32_t _IABR[8]; 	//0xE000E300 (Interrupt Active Bit Reg)
+	uint32_t RESERVED4[56];
+	volatile uint8_t _IPR[240]; 	//0xE000E400 (Interrupt Priority Reg 1 byte each)
+}NVIC_t;
 
 ////////////END OF REGISTER OFFSET STRUCTS////////////
 
@@ -264,6 +274,12 @@ typedef struct {
  * Flash Reg Pointers
  */
 #define FLASH_REG ((Flash_IntF_Register_Offset_t*) FLASH_INTF_REG_ADDR)
+
+/*
+ * NVIC Reg Pointers
+ */
+#define NVIC_REG ((volatile NVIC_t*) NVIC_BASE_ADDR)
+
 ////////////END OF REGISTER POINTERS////////////
 
 

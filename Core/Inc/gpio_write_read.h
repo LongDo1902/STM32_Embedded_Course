@@ -86,11 +86,6 @@ typedef enum{MODER, OTYPER, OSPEEDR, PUPDR, IDR, ODR,
 			BSRR, LCKR, AFRL, AFRH}GPIO_Mode_t;
 
 /*
- * Collections of EXTI Offset Register Name
- */
-typedef enum{IMR, EMR, RTSR, FTSR, SWIER, PR}EXTI_Mode_t;
-
-/*
  * Collection of Flash Interface Register Name
  */
 typedef enum{FLASH_ACR, FLASH_KEYR, FLASH_OPTKEYR,

@@ -5,7 +5,6 @@
 #include "buttons.h"
 #include "registerAddress.h"
 #include "gpio_write_read.h"
-#include "interrupt.h"
 #include "uart.h"
 #include "spi.h"
 #include "timer.h"
@@ -15,40 +14,41 @@ char session[15] = "TIMER";
 int LED_Delay = 400;
 uint32_t* desiredOffsetAddr = (uint32_t*)0x20000000;
 
-void EXTIFunction(){
-	if(buttonState()){
-		LED_Control(LED_Green, 1);
-	}
-	else{
-		LED_Control(LED_Green, 0);
-	}
-	writeEXTI(0, PR, my_GPIO_PIN_SET); //Clear the flag
-}
+//void EXTIFunction(){
+//	if(buttonState()){
+//		LED_Control(LED_Green, 1);
+//	}
+//	else{
+//		LED_Control(LED_Green, 0);
+//	}
+//	writeEXTI(0, PR, my_GPIO_PIN_SET); //Clear the flag
+//}
+
 
 
 
 int main(void){
 	HAL_Init();
 
-	if(strcmp(session, "EXTI") == 0){
-		buttonInit(0, my_GPIOA);
-		LED_Red_Init();
-		LED_Green_Init();
+//	if(strcmp(session, "EXTI") == 0){
+//		buttonInit(0, my_GPIOA);
+//		LED_Red_Init();
+//		LED_Green_Init();
+//
+//		EXTI_TriggerConfig(0, my_EXTI_TRIGGER_BOTH); //Trigger interrupt for rising and falling
+//		EXTI_Init(0, NVIC_BASE_ADDR, EXTI0);
+//		EXTI_Offset_Init(desiredOffsetAddr);
+//		user_EXTI_IRQHandler(EXTIFunction, 0x58);
+//
+//		while(1){
+//			LED_Control(LED_Red, 1);
+//			HAL_Delay(LED_Delay);
+//			LED_Control(LED_Red, 0);
+//			HAL_Delay(LED_Delay);
+//		}
+//	}
 
-		EXTI_TriggerConfig(0, my_EXTI_TRIGGER_BOTH); //Trigger interrupt for rising and falling
-		EXTI_Init(0, NVIC_ISERx_BASE_ADDR, EXTI0);
-		EXTI_Offset_Init(desiredOffsetAddr);
-		user_EXTI_IRQHandler(EXTIFunction, 0x58);
-
-		while(1){
-			LED_Control(LED_Red, 1);
-			HAL_Delay(LED_Delay);
-			LED_Control(LED_Red, 0);
-			HAL_Delay(LED_Delay);
-		}
-	}
-
-	else if(strcmp(session, "UART") == 0){
+	if(strcmp(session, "UART") == 0){
 		LED_Red_Init();
 		UART_Init(my_GPIO_PIN_6, my_GPIO_PIN_7, my_GPIOB, my_UART1, 9600, PARITY_ODD, WORDLENGTH_9B);
 		while(1){
@@ -104,19 +104,6 @@ int main(void){
 		}
 	}
 }
-
-//#include <stdio.h>
-//#include "timer.h"
-//#include "stm32f4xx_hal.h"
-//
-//int main(void){
-//	__HAL_RCC_TIM1_CLK_ENABLE();
-//	writeTimer(0, my_TIM1, TIM_PSC, (1600 - 1));
-//	while(1){
-//
-//	}
-//}
-
 
 
 

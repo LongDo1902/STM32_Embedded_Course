@@ -252,7 +252,7 @@ void SPI_misoPin_Init(GPIO_Pin_t misoPin, GPIO_PortName_t misoPort, SPI_Name_t S
 void writeSPI(uint8_t bitPosition, SPI_Name_t userSPIx, SPI_Mode_t mode, uint32_t value){
 	if(bitPosition > 15) return; //Condition to check false entered bitPosition
 
-	SPI_Register_Offset_t* SPIx_p;
+	volatile SPI_Register_Offset_t* SPIx_p;
 	switch(userSPIx){
 		case my_SPI1: SPIx_p = SPI1_REG; break;
 		case my_SPI2: SPIx_p = SPI2_REG; break;
@@ -326,7 +326,7 @@ void writeSPI(uint8_t bitPosition, SPI_Name_t userSPIx, SPI_Mode_t mode, uint32_
 uint16_t readSPI(uint8_t bitPosition, SPI_Name_t userSPIx, SPI_Mode_t mode){
 	const uint16_t ERROR_FLAG = 0xFFFF;
 
-	SPI_Register_Offset_t* SPIx_p;
+	volatile SPI_Register_Offset_t* SPIx_p;
 	switch(userSPIx){
 		case my_SPI1: SPIx_p = SPI1_REG; break;
 		case my_SPI2: SPIx_p = SPI2_REG; break;

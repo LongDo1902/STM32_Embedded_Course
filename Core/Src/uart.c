@@ -171,7 +171,7 @@ void my_UART_Transmit(UART_Name_t UARTx, uint8_t inputData){
  * @param	state			write set for 1, reset for 0
  */
 void writeUART(uint8_t bitPosition, UART_Name_t userUARTx, UART_Mode_t mode, uint32_t value){
-	UART_Register_Offset_t* UARTx;
+	volatile UART_Register_Offset_t* UARTx;
 	switch(userUARTx){
 		case my_UART1: UARTx = UART1_REG; break;
 		case my_UART2: UARTx = UART2_REG; break;
@@ -225,7 +225,7 @@ void writeUART(uint8_t bitPosition, UART_Name_t userUARTx, UART_Mode_t mode, uin
  *  	-1 if an invalid UART peripheral or register mode is selected.
  */
 char readUART(uint8_t bitPosition, UART_Name_t userUARTx, UART_Mode_t mode){
-	UART_Register_Offset_t* UARTx;
+	volatile UART_Register_Offset_t* UARTx;
 	switch(userUARTx){
 		case my_UART1: UARTx = UART1_REG; break;
 		case my_UART2: UARTx = UART2_REG; break;
