@@ -84,11 +84,11 @@ void EXTI_init(char bitPosition,
  *
  * @param	vectorTableOffsetAddr	A pointer to the new RAM location where the vector table will be copied
  */
-static uint32_t* globalVectorTableOffsetAddr;
+static volatile uint32_t* globalVectorTableOffsetAddr;
 
 void vectorTableOffset(volatile uint32_t* vectorTableOffsetAddr){
 	//Pointer to the current vector base address (usually in flash)
-	volatile uint32_t* originVectorTableAddr = (volatile uint32_t*) VTOR_BASE_ADDR;
+	volatile uint32_t* originVectorTableAddr = (volatile uint32_t*)(*(volatile uint32_t*) VTOR_BASE_ADDR);
 
 	//Copy the existing vector table entries to the new location
 	for(int i = 0; i < 0x198; i++){
@@ -96,20 +96,16 @@ void vectorTableOffset(volatile uint32_t* vectorTableOffsetAddr){
 	}
 
 	//Update the VTOR to point to the new vector table in RAM
-	*((volatile uint32_t*)VTOR_BASE_ADDR) = (uint32_t)vectorTableOffsetAddr;
+	(*(volatile uint32_t*)VTOR_BASE_ADDR) = (uint32_t)vectorTableOffsetAddr;
 
 	globalVectorTableOffsetAddr = vectorTableOffsetAddr;
 }
 
 
 
-void user_IRQHandler(void (*functionCallBack)(void), uint32_t byteOffset){
+void user_IRQHandler(void (*functionCallBack)(void), uint8_t byteOffset){
 	volatile void(**funcPointer)(void) = (volatile void(**)(void)) (globalVectorTableOffsetAddr + byteOffset);
 	*funcPointer = functionCallBack;
-
-	//Ensure CPU sees the new entry before any interrupt can fire
-	__DSB();
-	__ISB();
 }
 
 

@@ -12,30 +12,33 @@
 #include "exti.h"
 
 
-char session[15] = "EXTI";
+char session[15] = "TIMER";
 int LED_Delay = 400;
 
 uint32_t* desiredOffsetAddr = (uint32_t*)0x20000000;
 
-void userIRQHandlerFunction(){
-	if(buttonState()){
-		LED_Control(LED_Green, 1);
+#if 0
+	void userIRQHandlerFunction(){
+		if(buttonState()){
+			LED_Control(LED_Green, 1);
+		}
+		else{
+			LED_Control(LED_Green, 0);
+		}
+		writeEXTI(0, PR, SET); //Clear the flag
 	}
-	else{
-		LED_Control(LED_Green, 0);
+#else
+	void EXTI0_IRQHandler(){
+		if(buttonState()){
+			LED_Control(LED_Green, 1);
+		}
+		else{
+			LED_Control(LED_Green, 0);
+		}
+		writeEXTI(0, PR, SET); //Clear the flag
 	}
-	writeEXTI(0, PR, SET); //Clear the flag
-}
+#endif
 
-//void EXTI0_IRQHandler(){
-//	if(buttonState()){
-//		LED_Control(LED_Green, 1);
-//	}
-//	else{
-//		LED_Control(LED_Green, 0);
-//	}
-//	writeEXTI(0, PR, SET); //Clear the flag
-//}
 
 int main(void){
 	HAL_Init();
@@ -46,8 +49,8 @@ int main(void){
 		LED_Green_Init();
 
 		EXTI_init(0, my_EXTI_TRIGGER_BOTH, EXTI0);
-		vectorTableOffset(desiredOffsetAddr); //The red led stops working when this function is activated
-		user_IRQHandler(userIRQHandlerFunction, 0x080007d4);
+		vectorTableOffset(desiredOffsetAddr);
+//		user_IRQHandler(userIRQHandlerFunction, 0x58); //How to do this??? The green interrupt does not work here
 
 		while(1){
 			LED_Control(LED_Red, 1);
