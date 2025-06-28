@@ -81,7 +81,7 @@ typedef enum{
 	FPU_user = 81,
 	SPI4_user = 84,
 	SPI5_user = 85
-}IQRn_Pos_t;
+}IRQn_Pos_t;
 
 //typedef enum{
 //	NVIC_ISER, 	//Interrupt Set-Enable Reg
@@ -110,11 +110,14 @@ typedef enum{
 /*
  * List of function declarations
  */
-void NVIC_enableIRQ(IQRn_Pos_t irqNumber);
-void NVIC_disableIRQ(IQRn_Pos_t irqNumber);
-void NVIC_writeIPR(IQRn_Pos_t irqNumber, uint8_t priority);
+void NVIC_enableIRQ(IRQn_Pos_t irqNumber);
+void NVIC_disableIRQ(IRQn_Pos_t irqNumber);
+void NVIC_writeIPR(IRQn_Pos_t irqNumber, uint8_t priority);
 void writeEXTI(uint8_t bitPosition, EXTI_Mode_t mode, FlagStatus state);
-void EXTI_Init(char bitPosition, EXTI_Trigger_t triggerMode, IQRn_Pos_t irqNumber);
+void EXTI_init(char bitPosition, EXTI_Trigger_t triggerMode, IRQn_Pos_t irqNumber);
+
+void vectorTableOffset(volatile uint32_t* vectorTableOffsetAddr);
+void user_IRQHandler(void (*functionCallBack)(void), uint32_t byteOffset);
 
 /*
  * @brief	Helper function to check if an EXTI bit position is valid (not reserved / is valid)

@@ -13,7 +13,7 @@
  *
  * @param	irqNumber	IRQ number based on the vector table (0-85)
  */
-void NVIC_enableIRQ(IQRn_Pos_t irqNumber){
+void NVIC_enableIRQ(IRQn_Pos_t irqNumber){
 	if(irqNumber > 85) return;
 
 	uint8_t regIdx = irqNumber / 32; //Determine which ISER reg
@@ -29,7 +29,7 @@ void NVIC_enableIRQ(IQRn_Pos_t irqNumber){
  *
  * @param 	irqNumber IRQ number based on the vector table (0-85)
  */
-void NVIC_disableIRQ(IQRn_Pos_t irqNumber){
+void NVIC_disableIRQ(IRQn_Pos_t irqNumber){
 	if(irqNumber > 85) return;
 
 	uint8_t regIdx = irqNumber / 32; //Determine which ICER reg
@@ -46,7 +46,7 @@ void NVIC_disableIRQ(IQRn_Pos_t irqNumber){
  * @param	irqNumber	IRQ number (0-85)
  * @param	priority	Priority level (only upper 4 bits of 8-bit field are used)
  */
-void NVIC_writeIPR(IQRn_Pos_t irqNumber, uint8_t priority){
+void NVIC_writeIPR(IRQn_Pos_t irqNumber, uint8_t priority){
 	if(irqNumber > 85) return;
 	NVIC_REG -> _IPR[irqNumber] = (priority & 0x0F) << 4; //Top 4 bits only are used
 }
@@ -60,9 +60,9 @@ void NVIC_writeIPR(IQRn_Pos_t irqNumber, uint8_t priority){
  * @param	triggerMode		Trigger the interrupt based on rising/falling/bot edges
  * @param	irqNumber		Corresponding NVIC IRQ number to enable
  */
-void EXTI_Init(char bitPosition,
+void EXTI_init(char bitPosition,
 			   EXTI_Trigger_t triggerMode,
-			   IQRn_Pos_t irqNumber){
+			   IRQn_Pos_t irqNumber){
 
 	if(triggerMode == my_EXTI_TRIGGER_RISING || triggerMode == my_EXTI_TRIGGER_BOTH){
 		writeEXTI(bitPosition, RTSR, SET); //Rising Edge Reg Enable
@@ -72,11 +72,45 @@ void EXTI_Init(char bitPosition,
 		writeEXTI(bitPosition, FTSR, SET); //Falling Edge Reg Enable
 	}
 
-
 	writeEXTI(bitPosition, IMR, SET); //(write 1 = Unmask Interrupt) -> Enable EXTI line
 	NVIC_enableIRQ(irqNumber); //Enable IRQ in NVIC
 }
 
+
+
+/*
+ * @brief	Relocates the vector table to a new memory address in RAM
+ * 			Useful for enabling dynamic interrupt vector updates at runtime
+ *
+ * @param	vectorTableOffsetAddr	A pointer to the new RAM location where the vector table will be copied
+ */
+static uint32_t* globalVectorTableOffsetAddr;
+
+void vectorTableOffset(volatile uint32_t* vectorTableOffsetAddr){
+	//Pointer to the current vector base address (usually in flash)
+	volatile uint32_t* originVectorTableAddr = (volatile uint32_t*) VTOR_BASE_ADDR;
+
+	//Copy the existing vector table entries to the new location
+	for(int i = 0; i < 0x198; i++){
+		*(vectorTableOffsetAddr + i) = *(originVectorTableAddr + i);
+	}
+
+	//Update the VTOR to point to the new vector table in RAM
+	*((volatile uint32_t*)VTOR_BASE_ADDR) = (uint32_t)vectorTableOffsetAddr;
+
+	globalVectorTableOffsetAddr = vectorTableOffsetAddr;
+}
+
+
+
+void user_IRQHandler(void (*functionCallBack)(void), uint32_t byteOffset){
+	volatile void(**funcPointer)(void) = (volatile void(**)(void)) (globalVectorTableOffsetAddr + byteOffset);
+	*funcPointer = functionCallBack;
+
+	//Ensure CPU sees the new entry before any interrupt can fire
+	__DSB();
+	__ISB();
+}
 
 
 

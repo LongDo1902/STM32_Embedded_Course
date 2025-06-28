@@ -69,7 +69,7 @@
 /*
  * VTOR (Vector Table Offset Reg) (Cortex-M4 ref manual)
  */
-#define VTO_REG ((volatile uint32_t*)(0xE000ED08))
+#define VTOR_BASE_ADDR 0xE000ED08UL
 
 /*
  * Custom symbolic addresses for EXTI IRQ vector labels
