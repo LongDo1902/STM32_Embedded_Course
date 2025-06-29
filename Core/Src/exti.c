@@ -103,9 +103,15 @@ void vectorTableOffset(volatile uint32_t* vectorTableOffsetAddr){
 
 
 
-void user_IRQHandler(void (*functionCallBack)(void), uint8_t byteOffset){
-	volatile void(**funcPointer)(void) = (volatile void(**)(void)) (globalVectorTableOffsetAddr + byteOffset);
-	*funcPointer = functionCallBack;
+/*
+ * @brief	Registers a custom interrupt handler function at a specific vector table offset
+ *
+ * @param	function_id		Pointer to the user-defined interrupt handler function
+ * @param	interruptAddr	Address of the vector table entry (from STM32 VT table, e.g. 0x58 for EXTI0)
+ */
+void user_IRQHandler(void (*function_id)(void), uint32_t interruptAddr){
+	volatile void(**funcPointer)(void) = (volatile void(**)(void)) (globalVectorTableOffsetAddr + interruptAddr/4);
+	*funcPointer = function_id;
 }
 
 

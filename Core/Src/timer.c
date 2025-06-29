@@ -13,6 +13,10 @@
 int timeCnt = 0;
 
 
+void getPSC_ARR(uint32_t timerClock){
+
+}
+
 void initTimer(TIM_Name_t userTIMx){
 	switch(userTIMx){
 		case my_TIM1: __HAL_RCC_TIM1_CLK_ENABLE(); break;
@@ -26,8 +30,8 @@ void initTimer(TIM_Name_t userTIMx){
 		default: return;
 	}
 //	writeTimer(0, userTIMx, TIM_PSC, 16000 - 1);
-	writeTimer(0, userTIMx, TIM_PSC, 15); //15 counts
-	writeTimer(0, userTIMx, TIM_ARR, 1000); //Trigger every 1ms
+	writeTimer(0, userTIMx, TIM_PSC, 8000 - 1);
+	writeTimer(0, userTIMx, TIM_ARR, 1); //Trigger every 1ms
 	writeTimer(0, userTIMx, TIM_DIER, SET); //DMA Interrupt Enable
 	NVIC_enableIRQ(TIM1_UP_TIM10); //Enable interrupt at IRQ 25
 

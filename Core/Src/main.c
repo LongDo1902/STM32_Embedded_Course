@@ -13,36 +13,24 @@
 
 
 char session[15] = "EXTI";
-int LED_Delay = 400;
+int LED_Delay = 500; //ms
 
 uint32_t* desiredOffsetAddr = (uint32_t*)0x20000000;
 
-#if 1
-	void userIRQHandlerFunction(){ // 0x0800085c
-		if(buttonState()){
-			LED_Control(LED_Green, 1);
-		}
-		else{
-			LED_Control(LED_Green, 0);
-		}
-		writeEXTI(0, PR, SET); //Clear the flag
+
+void userIRQHandlerFunction(){ // 0x0800085c
+	if(buttonState()){
+		LED_Control(LED_Green, 1);
 	}
-#else
-	void EXTI0_IRQHandler(){
-		if(buttonState()){
-			LED_Control(LED_Green, 1);
-		}
-		else{
-			LED_Control(LED_Green, 0);
-		}
-		writeEXTI(0, PR, SET); //Clear the flag
+	else{
+		LED_Control(LED_Green, 0);
 	}
-#endif
+	writeEXTI(0, PR, SET); //Clear the flag
+}
 
 
 int main(void){
 	initTimer(my_TIM1);
-//	HAL_Init();
 
 	if(strcmp(session, "EXTI") == 0){
 		buttonInit(0, my_GPIOA);
@@ -55,9 +43,9 @@ int main(void){
 
 		while(1){
 			LED_Control(LED_Red, 1);
-			HAL_Delay(LED_Delay);
+			delay(LED_Delay);
 			LED_Control(LED_Red, 0);
-			HAL_Delay(LED_Delay);
+			delay(LED_Delay);
 		}
 	}
 
@@ -109,17 +97,10 @@ int main(void){
 		LED_Blue_Init();
 
 		while(1){
-#if 1
 			LED_Control(LED_Red, 1);
 			delay(1000); //Seems to be abit slower than the actual time
 			LED_Control(LED_Red, 0);
 			delay(1000);
-#else
-			LED_Control(LED_Blue, 1);
-			HAL_Delay(1000);
-			LED_Control(LED_Blue, 0);
-			HAL_Delay(1000);
-#endif
 		}
 	}
 }

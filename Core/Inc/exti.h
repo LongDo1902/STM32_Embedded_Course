@@ -117,7 +117,7 @@ void writeEXTI(uint8_t bitPosition, EXTI_Mode_t mode, FlagStatus state);
 void EXTI_init(char bitPosition, EXTI_Trigger_t triggerMode, IRQn_Pos_t irqNumber);
 
 void vectorTableOffset(volatile uint32_t* vectorTableOffsetAddr);
-void user_IRQHandler(void (*functionCallBack)(void), uint8_t byteOffset);
+void user_IRQHandler(void (*functionCallBack)(void), uint32_t byteOffset);
 
 /*
  * @brief	Helper function to check if an EXTI bit position is valid (not reserved / is valid)
