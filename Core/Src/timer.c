@@ -8,18 +8,9 @@
 #include "timer.h"
 
 /*
- * RCC provides 16MHz
- * 		16M pulses per second
- * 		1 pulse 0.0625us
+ * Global parameters
  */
-
-/*
- * TIM1 is 16-bit auto-reload counter (65535 counts)
- * Counter +1 for every 0.0625us
- * When counter = 65535 -> t = 4.1ms
- *
- * Prescaler 1 to 65535 fractor
- */
+int timeCnt = 0;
 
 
 void initTimer(TIM_Name_t userTIMx){
@@ -34,24 +25,28 @@ void initTimer(TIM_Name_t userTIMx){
 		case my_TIM11: __HAL_RCC_TIM11_CLK_ENABLE(); break;
 		default: return;
 	}
-	writeTimer(0, userTIMx, TIM_PSC, 16000 - 1);
-	writeTimer(0, userTIMx, TIM_ARR, 1); //Trigger every 1ms
+//	writeTimer(0, userTIMx, TIM_PSC, 16000 - 1);
+	writeTimer(0, userTIMx, TIM_PSC, 15); //15 counts
+	writeTimer(0, userTIMx, TIM_ARR, 1000); //Trigger every 1ms
 	writeTimer(0, userTIMx, TIM_DIER, SET); //DMA Interrupt Enable
+	NVIC_enableIRQ(TIM1_UP_TIM10); //Enable interrupt at IRQ 25
+
 	writeTimer(0, userTIMx, TIM_CR1, SET); //Counter enabled
 }
 
 
+void TIM1_UP_TIM10_IRQHandler(){
+	timeCnt++;
+	writeTimer(0, my_TIM1, TIM_SR, RESET); //Clear the interrupt flag
+}
 
-//int timeCnt = 0;
-//void TIM1_UP_TIM10_IRQHandler(){
-//	timeCnt++;
-//	writeTimer(0, my_TIM1, TIM_SR, RESET); //Clear the interrupt flag
-//}
-//
-//void delay(int ms){
-//	timeCnt = 0;
-//	while(timeCnt < ms);
-//}
+
+void delay(int msec){
+	timeCnt = 0;
+	while(timeCnt < msec);
+}
+
+
 
 /*
  * @brief	Writes a bit field into a specific TIM register at a given position,
@@ -292,7 +287,7 @@ uint32_t readTimer(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
 	}
 
 	volatile uint32_t* reg;
-	TIM_Register_Offset_t* TIMx_p;
+	volatile TIM_Register_Offset_t* TIMx_p;
 
 	switch(userTIMx){
 		case my_TIM1: TIMx_p = TIM1_REG; break;

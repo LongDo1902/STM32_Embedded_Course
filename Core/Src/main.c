@@ -12,13 +12,13 @@
 #include "exti.h"
 
 
-char session[15] = "TIMER";
+char session[15] = "EXTI";
 int LED_Delay = 400;
 
 uint32_t* desiredOffsetAddr = (uint32_t*)0x20000000;
 
-#if 0
-	void userIRQHandlerFunction(){
+#if 1
+	void userIRQHandlerFunction(){ // 0x0800085c
 		if(buttonState()){
 			LED_Control(LED_Green, 1);
 		}
@@ -41,7 +41,8 @@ uint32_t* desiredOffsetAddr = (uint32_t*)0x20000000;
 
 
 int main(void){
-	HAL_Init();
+	initTimer(my_TIM1);
+//	HAL_Init();
 
 	if(strcmp(session, "EXTI") == 0){
 		buttonInit(0, my_GPIOA);
@@ -50,7 +51,7 @@ int main(void){
 
 		EXTI_init(0, my_EXTI_TRIGGER_BOTH, EXTI0);
 		vectorTableOffset(desiredOffsetAddr);
-//		user_IRQHandler(userIRQHandlerFunction, 0x58); //How to do this??? The green interrupt does not work here
+		user_IRQHandler(userIRQHandlerFunction, 0x58); //How to do this??? The green interrupt does not work here
 
 		while(1){
 			LED_Control(LED_Red, 1);
@@ -104,15 +105,21 @@ int main(void){
 
 
 	else {
-		initTimer(my_TIM1);
 		LED_Red_Init();
 		LED_Blue_Init();
 
 		while(1){
-//			LED_Control(LED_Red, 1);
-//			delay_1s(my_TIM1);
-//			LED_Control(LED_Red, 0);
-//			delay_1s(my_TIM1);
+#if 1
+			LED_Control(LED_Red, 1);
+			delay(1000); //Seems to be abit slower than the actual time
+			LED_Control(LED_Red, 0);
+			delay(1000);
+#else
+			LED_Control(LED_Blue, 1);
+			HAL_Delay(1000);
+			LED_Control(LED_Blue, 0);
+			HAL_Delay(1000);
+#endif
 		}
 	}
 }
