@@ -14,6 +14,12 @@
 #include "exti.h"
 #include "stm32f4xx.h"
 
+
+#define TIMER_CLK_FREQ	16000000
+#define TIMER_PSC		8000
+#define TIMER_ARR		1
+
+
 typedef enum{
 	my_TIM1, //0
 	my_TIM2,

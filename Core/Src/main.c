@@ -13,7 +13,7 @@
 
 
 char session[15] = "EXTI";
-int LED_Delay = 500; //ms
+int userDelay = 500; //ms
 
 uint32_t* desiredOffsetAddr = (uint32_t*)0x20000000;
 
@@ -43,9 +43,9 @@ int main(void){
 
 		while(1){
 			LED_Control(LED_Red, 1);
-			delay(LED_Delay);
+			delay(userDelay);
 			LED_Control(LED_Red, 0);
-			delay(LED_Delay);
+			delay(userDelay);
 		}
 	}
 
@@ -98,9 +98,9 @@ int main(void){
 
 		while(1){
 			LED_Control(LED_Red, 1);
-			delay(1000); //Seems to be abit slower than the actual time
+			delay(userDelay); //Seems to be abit slower than the actual time
 			LED_Control(LED_Red, 0);
-			delay(1000);
+			delay(userDelay);
 		}
 	}
 }

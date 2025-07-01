@@ -80,6 +80,12 @@
 #define EXTI3_ADDR 0x64
 
 /*
+ * RCC Base Address
+ */
+#define RCC_BASE_ADDR 0x40023800UL
+
+
+/*
  * FLASH INTERFACE REG ADDR
  */
 #define FLASH_INTF_REG_ADDR 0x40023800UL
@@ -224,6 +230,65 @@ typedef struct{
 	volatile uint8_t _IPR[240]; 	//0xE000E400 (Interrupt Priority Reg 1 byte each)
 }NVIC_t;
 
+/*
+ * List of RCC Register Offsets
+ */
+typedef struct{
+	volatile uint32_t RCC_RC;			//0x00 (RCC Clock Control Reg)
+	volatile uint32_t RCC_PLL_CFGR;		//0x04 (RCC PLL Config Reg)
+	volatile uint32_t RCC_CFGR;			//0x08 (RCC Clock Config Reg)
+	volatile uint32_t RCC_CIR;			//0x0C (RCC Clock Interrupt Reg)
+
+	volatile uint32_t RCC_AHB1_RSTR;	//0x10 (RCC AHB1 Reset Reg)
+	volatile uint32_t RCC_AHB2_RSTR;	//0x14 (RCC AHB2 Reset Reg)
+
+	volatile uint32_t RESERVED0;
+	volatile uint32_t RESERVED1;
+
+	volatile uint32_t RCC_APB1_RSTR;	//0x20 (RCC APB1 Reset Reg)
+	volatile uint32_t RCC_APB2_RSTR;	//0x24 (RCC APB2 Reset Reg)
+
+	volatile uint32_t RESERVED2;
+	volatile uint32_t RESERVED3;
+
+	volatile uint32_t RCC_AHB1_ENR;		//0x30 (RCC AHB1 Clock Enable)
+	volatile uint32_t RCC_AHB2_ENR;		//0x34 (RCC AHB2 Clock Enable)
+
+	volatile uint32_t RESERVED4;
+	volatile uint32_t RESERVED5;
+
+	volatile uint32_t RCC_APB1_ENR;		//0x40 (RCC APB1 Clock Enable)
+	volatile uint32_t RCC_APB2_ENR;		//0x44 (RCC APB2 Clock Enable)
+
+	volatile uint32_t RESERVED6;
+	volatile uint32_t RESERVED7;
+
+	volatile uint32_t RCC_AHB1_LP_ENR;	//0x50 (RCC AHB1 Low Power Mode Enable)
+	volatile uint32_t RCC_AHB2_LP_ENR;	//0x54 (RCC AHB2 Low Power Mode Enable)
+
+	volatile uint32_t RESERVED8;
+	volatile uint32_t RESERVED9;
+
+	volatile uint32_t RCC_APB1_LP_ENR;	//0x60 (RCC APB1 Low Power Mode Enable)
+	volatile uint32_t RCC_APB2_LP_ENR;	//0x64 (RCC APB2 Low Power Mode Enable)
+
+	volatile uint32_t RESERVED10;
+	volatile uint32_t RESERVED11;
+
+	volatile uint32_t RCC_BDCR;			//0x70 (RCC Backup Domain Control Reg)
+	volatile uint32_t RCC_CSR;			//0x74 (RCC Clock Control & Status Reg)
+
+	volatile uint32_t RESERVED12;
+	volatile uint32_t RESERVED13;
+
+	volatile uint32_t RCC_SSCGR;		//0x80 (RCC Spread Spectrum Clock Generation Reg)
+	volatile uint32_t RCC_PLL_I2S_CFGR;	//0x84 (RCC PLLI2S Config Reg)
+
+	volatile uint32_t RESERVED14;
+
+	volatile uint32_t RCC_DCK_CFGR;		//0x8C (RCC Dedicated Clocks Config Reg)
+}RCC_Register_Offset_t;
+
 ////////////END OF REGISTER OFFSET STRUCTS////////////
 
 /*
@@ -279,6 +344,12 @@ typedef struct{
  * NVIC Reg Pointers
  */
 #define NVIC_REG ((volatile NVIC_t*) NVIC_BASE_ADDR)
+
+/*
+ * RCC Reg Pointers
+ */
+#define RCC_REG ((volatile RCC_Register_Offset_t*) RCC_BASE_ADDR);
+
 
 ////////////END OF REGISTER POINTERS////////////
 
