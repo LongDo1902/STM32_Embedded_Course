@@ -348,7 +348,7 @@ typedef struct{
 /*
  * RCC Reg Pointers
  */
-#define RCC_REG ((volatile RCC_Register_Offset_t*) RCC_BASE_ADDR);
+#define RCC_REG ((volatile RCC_Register_Offset_t*) RCC_BASE_ADDR)
 
 
 ////////////END OF REGISTER POINTERS////////////

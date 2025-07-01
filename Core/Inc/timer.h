@@ -88,7 +88,7 @@ uint32_t readTimer (uint8_t bitPosiion, TIM_Name_t userTIMx, TIM_Mode_t mode);
  *
  * @return	Extracted value
  */
-static inline uint32_t readBits(volatile uint32_t* reg, uint8_t bitPosition, uint8_t bitWidth){
+inline uint32_t readBits(volatile uint32_t* reg, uint8_t bitPosition, uint8_t bitWidth){
 	if(bitWidth == 32){
 		return (*reg >> bitPosition); //Full-word; no mask needed
 	}
