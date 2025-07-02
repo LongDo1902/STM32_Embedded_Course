@@ -10,9 +10,10 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include <timer.h>
+#include "timer.h"
 #include "stm32f4xx.h"
 #include "registerAddress.h"
+#include "flash.h"
 
 
 #define HSERDY_TIMEOUT	0x2000U
