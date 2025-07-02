@@ -23,10 +23,8 @@ typedef enum{
 	FLASH_CR,
 	FLASH_OPTCR,
 
-	FLASH_REG_COUNT
+	FLASH_REG_COUNT // == 6
 }Flash_Name_t;
-
-static const uint32_t FLASH_
 
 /*
  * List of function declarations
