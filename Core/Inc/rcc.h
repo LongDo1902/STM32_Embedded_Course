@@ -68,5 +68,5 @@ void RCC_init(void);
 void writeRCC(uint8_t bitPosition, RCC_Name_t mode, uint32_t value);
 uint32_t readRCC(uint8_t bitPosition, RCC_Name_t mode);
 void writeBits(volatile uint32_t* reg, uint8_t bitPosition, uint8_t bitWidth, uint32_t value);
-
+//Hello
 #endif /* INC_RCC_H_ */
