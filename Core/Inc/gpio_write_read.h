@@ -85,11 +85,6 @@ typedef enum{
 typedef enum{MODER, OTYPER, OSPEEDR, PUPDR, IDR, ODR,
 			BSRR, LCKR, AFRL, AFRH}GPIO_Mode_t;
 
-/*
- * Collection of Flash Interface Register Name
- */
-typedef enum{FLASH_ACR, FLASH_KEYR, FLASH_OPTKEYR,
-			FLASH_SR, FLASH_CR, FLASH_OPTCR} Flash_IntF_Mode_t;
 
 
 /*
@@ -108,12 +103,6 @@ bool GPIO_LockPin(GPIO_Pin_t pinNum,
 char readPin(uint8_t bitPosition,
 			GPIO_PortName_t port,
 			GPIO_Mode_t mode);
-
-void writeFlash(uint8_t bitPosition,
-					Flash_IntF_Mode_t mode,
-					uint32_t value);
-
-char readFLASH(uint8_t bitPosition, Flash_IntF_Mode_t mode);
 
 
 #endif /* INC_GPIO_WRITE_READ_H_ */

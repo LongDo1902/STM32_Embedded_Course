@@ -36,7 +36,7 @@ void writePin(GPIO_Pin_t pinNum, GPIO_PortName_t port, GPIO_Mode_t mode, GPIO_St
 	if(pinNum > 15) return; //safeguard
 
 	//Create pointer GPIOx which has connection to GPIO_Register_Offset_t
-	GPIO_Register_Offset_t* GPIOx;
+	volatile GPIO_Register_Offset_t* GPIOx;
 
 	switch(port){
 		case my_GPIOA: GPIOx = GPIOA_REG; break; //Assign pointer GPIOx to pointer GPIOA_REG
@@ -132,7 +132,7 @@ char readPin(uint8_t bitPosition, GPIO_PortName_t port, GPIO_Mode_t mode){
 	if(bitPosition > 15) return -1;
 
 	//Create a pointer GPIOx which has connection to GPIO_Register_Offset_t
-	GPIO_Register_Offset_t* GPIOx;
+	volatile GPIO_Register_Offset_t* GPIOx;
 
 	switch(port){
 		case my_GPIOA: GPIOx = GPIOA_REG; break;
@@ -174,7 +174,7 @@ char readPin(uint8_t bitPosition, GPIO_PortName_t port, GPIO_Mode_t mode){
 bool GPIO_LockPin(GPIO_Pin_t pinNum, GPIO_PortName_t port){
 	if(pinNum > 15) return false;
 
-	GPIO_Register_Offset_t* GPIOx;
+	volatile GPIO_Register_Offset_t* GPIOx;
 
 	switch(port){
 		case my_GPIOA: GPIOx = GPIOA_REG; break; //Assign pointer GPIOx to pointer GPIOA_REG
@@ -183,6 +183,7 @@ bool GPIO_LockPin(GPIO_Pin_t pinNum, GPIO_PortName_t port){
 		case my_GPIOD: GPIOx = GPIOD_REG; break;
 		case my_GPIOE: GPIOx = GPIOE_REG; break;
 		case my_GPIOH: GPIOx = GPIOH_REG; break;
+
 		default: return false; //Invalid port!
 	}
 
@@ -197,150 +198,4 @@ bool GPIO_LockPin(GPIO_Pin_t pinNum, GPIO_PortName_t port){
 	(void)GPIOx -> LCKR; //Read LCKR
 
 	return (GPIOx -> LCKR & (1U << 16)) != 0;
-}
-
-
-
-/*
- * @brief	Writes a value to a specific bit field within a selected FLASH register
- * 			Automatically calculates the bitWidth based on the given value.
- * 			Safely handles reserved bitPositions and prevents overflow
- *
- * 	@param	bitPosition		Bit position to begin writting from (0 to 31)
- * 	@param 	mode			Enum indicating which FLASH register to write to
- * 	@param	value			Data to be written; bit width is inferred automatically
- */
-void writeFlash(uint8_t bitPosition, Flash_IntF_Mode_t mode, uint32_t value){
-	//Get the case address of the FLASH interface register map
-	Flash_IntF_Register_Offset_t* flashReg = FLASH_REG;
-
-	//Declare a pointer to the target offset register
-	volatile uint32_t* reg;
-
-	//Select the appropriate FLASH offset register based on mode
-	switch(mode){
-		case FLASH_ACR:
-			if((bitPosition >= 4 && bitPosition <= 7) || bitPosition >= 13){ //Reserved bitPosition
-				return;
-			}
-			reg = &flashReg -> FLASH_ACR;
-			break;
-
-		case FLASH_KEYR:
-			reg = &flashReg -> FLASH_KEYR;
-			break;
-
-		case FLASH_OPTKEYR:
-			reg = &flashReg -> FLASH_OPTKEYR;
-			break;
-
-		case FLASH_SR:
-			if(bitPosition == 2 || bitPosition == 3
-				|| (bitPosition >= 9 && bitPosition <= 15)
-				|| (bitPosition >= 17 && bitPosition <= 31)){ //Reserved bitPosition
-				return;
-			}
-			reg = &flashReg -> FLASH_SR;
-			break;
-
-		case FLASH_CR:
-			if(bitPosition == 7
-				|| (bitPosition >= 10 && bitPosition <= 15)
-				|| (bitPosition >= 17 && bitPosition <= 23)
-				|| (bitPosition >= 26 && bitPosition <= 30)){ //Reserved bitPosition
-				return;
-			}
-			reg = &flashReg -> FLASH_CR;
-			break;
-
-		case FLASH_OPTCR:
-			if (bitPosition == 4 || (bitPosition >= 24 && bitPosition <= 30)){
-				return;
-			}
-			reg = &flashReg -> FLASH_OPTCR;
-			break;
-		default: return; //Invalid mode! Exit early
-	}
-
-	//Auto detect bitwidth based on the "value" length
-	uint8_t bitWidth = 0;
-	uint32_t temp = value;
-	while(temp > 0){
-		bitWidth++; //Increment the bidWidth by one when ever temp > 0
-		temp = temp >> 1; //Shift the temp to the right by 1
-	}
-
-	//Prevent overflow
-	if (bitPosition + bitWidth > 32){
-		return;
-	}
-
-	//Mask off the old bit and OR with new value
-	uint32_t mask = ((1U << bitWidth) - 1U) << bitPosition;
-	uint32_t shiftedValue = (value << bitPosition) & mask;
-	*reg = (*reg & ~mask) | shiftedValue;
-}
-
-
-
-/*
- *	@brief	Read a specific bit from FLASH register safely
- *
- *	@param	bitPosition		Bit position to begin writting from (0 to 31)
- *	@param	mode			the FLASH offset register
- *
- *	@retval		1 if the bit is set
- *				0 if the bit if cleared
- *				-1 if the bit position is reserved or invalid for selected FLASH register
- */
-char readFLASH(uint8_t bitPosition, Flash_IntF_Mode_t mode){
-	//Get the case address of the FLASH interface register map
-	Flash_IntF_Register_Offset_t* flashReg = FLASH_REG;
-
-	//Declare a pointer to the target offset register
-	volatile uint32_t* reg;
-
-	//Select the appropriate FLASH offset register based on mode
-	switch(mode){
-		case FLASH_ACR: //RW
-			if((bitPosition >= 4 && bitPosition <= 7) || bitPosition >= 13){ //Reserved bitPosition
-				return -1;
-			}
-			reg = &flashReg -> FLASH_ACR;
-			break;
-
-		case FLASH_SR: //RW
-			if(bitPosition == 2 || bitPosition == 3
-				|| (bitPosition >= 9 && bitPosition <= 15)
-				|| (bitPosition >= 17 && bitPosition <= 31)){ //Reserved bitPosition
-				return -1;
-			}
-			reg = &flashReg -> FLASH_SR;
-			break;
-
-		case FLASH_CR: //RW
-			if(bitPosition == 7
-				|| (bitPosition >= 10 && bitPosition <= 15)
-				|| (bitPosition >= 17 && bitPosition <= 23)
-				|| (bitPosition >= 26 && bitPosition <= 30)){ //Reserved bitPosition
-				return -1;
-			}
-			reg = &flashReg -> FLASH_CR;
-			break;
-
-		case FLASH_OPTCR:  //RW
-			if (bitPosition == 4 || (bitPosition >= 24 && bitPosition <= 30)){
-				return -1;
-			}
-			reg = &flashReg -> FLASH_OPTCR;
-			break;
-		default: return -1; //Invalid mode! Exit early
-	}
-
-	//Check if there is invalid bit position
-	if (bitPosition > 31) return -1;
-
-	uint32_t value = *reg; //Access to the memory space/content in reg pointer
-	uint8_t bit = (value >> bitPosition) & 0x1;
-	return bit;
 }

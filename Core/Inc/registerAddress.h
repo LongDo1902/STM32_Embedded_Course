@@ -84,11 +84,10 @@
  */
 #define RCC_BASE_ADDR 0x40023800UL
 
-
 /*
  * FLASH INTERFACE REG ADDR
  */
-#define FLASH_INTF_REG_ADDR 0x40023800UL
+#define FLASH_INTF_REG_ADDR 0x40023C00UL
 ////////////END OF BASE ADDRESSES////////////
 
 
@@ -214,11 +213,17 @@ typedef struct {
 }Flash_IntF_Register_Offset_t;
 
 /*
- *
+ * ARM Cortex-M NVIC reg map (base: 0xE000E100)
+ * Case 0xE000E100 to NVIC_t*
+ * For example:
+ * 		_ISER[0]: +0x00 offset		0-31  IRQs
+ * 		_ISER[1]: +0x04	offset		32-63 IRQs
+ * 		...
+ * 		_ISER[7]: +0x1C offset		224-255 IRQs
  */
 typedef struct{
 	volatile uint32_t _ISER[8];		//0xE000E100 (Interrupt Set Enable Reg)
-	uint32_t RESERVED0[24]; 	//Reserved gap (0xE000E120 to 0xE000E17F)
+	uint32_t RESERVED0[24]; 		//Reserved gap (0xE000E120 to 0xE000E17F)
 	volatile uint32_t _ICER[8]; 	//0xE000E180 (Interrupt Clear-Enable Reg)
 	uint32_t RESERVED1[24];
 	volatile uint32_t _ISPR[8]; 	//0xE000E200 (Interrupt Set Pending Reg)
@@ -234,7 +239,7 @@ typedef struct{
  * List of RCC Register Offsets
  */
 typedef struct{
-	volatile uint32_t RCC_RC;			//0x00 (RCC Clock Control Reg)
+	volatile uint32_t RCC_CR;			//0x00 (RCC Clock Control Reg)
 	volatile uint32_t RCC_PLL_CFGR;		//0x04 (RCC PLL Config Reg)
 	volatile uint32_t RCC_CFGR;			//0x08 (RCC Clock Config Reg)
 	volatile uint32_t RCC_CIR;			//0x0C (RCC Clock Interrupt Reg)
@@ -349,8 +354,6 @@ typedef struct{
  * RCC Reg Pointers
  */
 #define RCC_REG ((volatile RCC_Register_Offset_t*) RCC_BASE_ADDR)
-
-
 ////////////END OF REGISTER POINTERS////////////
 
 

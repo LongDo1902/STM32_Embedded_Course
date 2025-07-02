@@ -1,25 +1,37 @@
-///*
-// * flash.c
-// *
-// *  Created on: Jun 1, 2025
-// *      Author: dobao
-// */
-//#include "registerAddress.h"
-//#include "flash.h"
-//#include "gpio_write_read.h"
-//#include "stdio.h"
-//
-///*
-// * @brief	A function to erase a specific sector
-// * @param	sectorNum: write 0 to 7 which 0 for sector 0 (becareful when eraing sector 0)
-// */
-//void Flash_Sector_Erase(int sectorNum){
-//	while (readFLASH(16, FLASH_SR) & 0x1 == 1); //Stay in this loop when there is on going Flash mem operation
-//	WriteFlash(1, FLASH_CR, 1); //Sector erase activate
-//	WriteFlash(3, FLASH_CR, sectorNum); //
-//
-//}
-//
-//
-//
-//
+/*
+ * flash.c
+ *
+ *  Created on: Jun 1, 2025
+ *      Author: dobao
+ */
+
+
+#include "flash.h"
+
+/*
+ * @brief	Initialize a lookup table for readFlash() and writeFlash() to access any Flash register generically via an enum index
+ * 			instead of hard-coding addresses each time
+ *
+ * @note	'const keeps the table in Flash'; registers themselve stay 'volatile' because the hardware can change them anytime
+ */
+static volatile uint32_t* const flashRegLookupTable[FLASH_REG_COUNT] = {
+		[FLASH_ACR] 	= GET_FLASH_REG(FLASH_ACR),
+		[FLASH_KEYR] 	= GET_FLASH_REG(FLASH_KEYR),
+		[FLASH_OPTKEYR]	= GET_FLASH_REG(FLASH_OPTKEYR),
+		[FLASH_SR]		= GET_FLASH_REG(FLASH_SR),
+		[FLASH_CR]		= GET_FLASH_REG(FLASH_CR),
+		[FLASH_OPTCR]	= GET_FLASH_REG(FLASH_OPTCR)
+};
+
+
+
+void writeFlash(uint8_t bitPosition, Flash_Name_t mode, uint32_t value){
+	if(bitPosition > 31) return;
+
+	volatile uint32_t* reg = flashRegLookupTable[mode];
+	switch(mode){
+
+	}
+
+}
+

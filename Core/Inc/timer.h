@@ -68,33 +68,11 @@ typedef enum{
  * Function declarations
  */
 void initTimer(TIM_Name_t userTIMx);
-
 void delay(int msec);
-
 void TIM1_UP_TIM10_IRQHandler();
-
 void writeTimer(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode, uint32_t value);
-
 uint32_t readTimer (uint8_t bitPosiion, TIM_Name_t userTIMx, TIM_Mode_t mode);
-
-
-
-/*
- * @brief	Read a field of 'bitWidth' bits from a register starting at 'bitPosition'
- *
- * @param	reg (pointer) to the register
- * @param	bitPosition		Starting bit position (0-31)
- * @param	bitWidth		Number of bts needed to read (1 to 32)
- *
- * @return	Extracted value
- */
-inline uint32_t readBits(volatile uint32_t* reg, uint8_t bitPosition, uint8_t bitWidth){
-	if(bitWidth == 32){
-		return (*reg >> bitPosition); //Full-word; no mask needed
-	}
-	uint32_t mask = (1U << bitWidth) - 1U;
-	return (*reg >> bitPosition) & mask;
-}
+extern uint32_t readBits(volatile uint32_t* reg, uint8_t bitPosition, uint8_t bitWidth);
 
 
 

@@ -10,9 +10,10 @@
 #include "spi.h"
 #include "timer.h"
 #include "exti.h"
+#include "rcc.h"
 
 
-char session[15] = "EXTI";
+char session[15] = "RCC";
 int userDelay = 500; //ms
 
 uint32_t* desiredOffsetAddr = (uint32_t*)0x20000000;
@@ -92,7 +93,7 @@ int main(void){
 	}
 
 
-	else {
+	else if(strcmp(session, "TIMER") == 0){
 		LED_Red_Init();
 		LED_Blue_Init();
 
@@ -101,6 +102,13 @@ int main(void){
 			delay(userDelay); //Seems to be abit slower than the actual time
 			LED_Control(LED_Red, 0);
 			delay(userDelay);
+		}
+	}
+
+	else if(strcmp(session, "RCC") == 0){
+		RCC_init();
+		while(1){
+
 		}
 	}
 }

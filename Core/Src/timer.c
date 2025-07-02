@@ -12,6 +12,27 @@
  */
 int timeCnt = 0;
 
+
+
+/*
+ * @brief	Read a field of 'bitWidth' bits from a register starting at 'bitPosition'
+ *
+ * @param	reg (pointer) to the register
+ * @param	bitPosition		Starting bit position (0-31)
+ * @param	bitWidth		Number of bts needed to read (1 to 32)
+ *
+ * @return	Extracted value
+ */
+uint32_t readBits(volatile uint32_t* reg, uint8_t bitPosition, uint8_t bitWidth){
+	if(bitWidth == 32){
+		return (*reg >> bitPosition); //Full-word; no mask needed
+	}
+	uint32_t mask = (1U << bitWidth) - 1U;
+	return (*reg >> bitPosition) & mask;
+}
+
+
+
 void initTimer(TIM_Name_t userTIMx){
 	switch(userTIMx){
 		case my_TIM1: __HAL_RCC_TIM1_CLK_ENABLE(); break;
@@ -67,7 +88,7 @@ void writeTimer(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode, uint3
 		return;
 	}
 
-	TIM_Register_Offset_t* TIMx_p; //Timer Pointer
+	volatile TIM_Register_Offset_t* TIMx_p; //Timer Pointer
 
 	switch(userTIMx){
 		case my_TIM1: TIMx_p = TIM1_REG; break;
