@@ -69,5 +69,90 @@ void RCC_init(void);
 void writeRCC(uint8_t bitPosition, RCC_Name_t mode, uint32_t value);
 uint32_t readRCC(uint8_t bitPosition, RCC_Name_t mode);
 void writeBits(volatile uint32_t* reg, uint8_t bitPosition, uint8_t bitWidth, uint32_t value);
-//Hello
+
+/*
+ * Timer clock enable
+ */
+void my_RCC_TIM1_CLK_ENABLE();
+void my_RCC_TIM1_CLK_DISABLE();
+
+void my_RCC_TIM2_CLK_ENABLE();
+void my_RCC_TIM2_CLK_DISABLE();
+
+void my_RCC_TIM3_CLK_ENABLE();
+void my_RCC_TIM3_CLK_DISABLE();
+
+void my_RCC_TIM4_CLK_ENABLE();
+void my_RCC_TIM4_CLK_DISABLE();
+
+void my_RCC_TIM5_CLK_ENABLE();
+void my_RCC_TIM5_CLK_DISABLE();
+
+void my_RCC_TIM9_CLK_ENABLE();
+void my_RCC_TIM9_CLK_DISABLE();
+
+void my_RCC_TIM10_CLK_ENABLE();
+void my_RCC_TIM10_CLK_DISABLE();
+
+void my_RCC_TIM11_CLK_ENABLE();
+void my_RCC_TIM11_CLK_DISABLE();
+
+
+
+/*
+ * GPIOs clock enable
+ */
+void my_RCC_GPIOA_CLK_ENABLE();
+void my_RCC_GPIOA_CLK_DISABLE();
+
+void my_RCC_GPIOB_CLK_ENABLE();
+void my_RCC_GPIOB_CLK_DISABLE();
+
+void my_RCC_GPIOC_CLK_ENABLE();
+void my_RCC_GPIOC_CLK_DISABLE();
+
+void my_RCC_GPIOD_CLK_ENABLE();
+void my_RCC_GPIOD_CLK_DISABLE();
+
+void my_RCC_GPIOE_CLK_ENABLE();
+void my_RCC_GPIOE_CLK_DISABLE();
+
+void my_RCC_GPIOH_CLK_ENABLE();
+void my_RCC_GPIOH_CLK_DISABLE();
+
+
+
+/*
+ * SPIx clock enable
+ */
+void my_RCC_SPI1_CLK_ENABLE();
+void my_RCC_SPI1_CLK_DISABLE();
+
+void my_RCC_SPI2_CLK_ENABLE();
+void my_RCC_SPI2_CLK_DISABLE();
+
+void my_RCC_SPI3_CLK_ENABLE();
+void my_RCC_SPI3_CLK_DISABLE();
+
+void my_RCC_SPI4_CLK_ENABLE();
+void my_RCC_SPI4_CLK_DISABLE();
+
+void my_RCC_SPI5_CLK_ENABLE();
+void my_RCC_SPI5_CLK_DISABLE();
+
+
+
+/*
+ * UARTx clock enable
+ */
+void my_RCC_USART1_CLK_ENABLE();
+void my_RCC_USART1_CLK_DISABLE();
+
+void my_RCC_USART2_CLK_ENABLE();
+void my_RCC_USART2_CLK_DISABLE();
+
+void my_RCC_USART6_CLK_ENABLE();
+void my_RCC_USART6_CLK_DISABLE();
+
+
 #endif /* INC_RCC_H_ */

@@ -7,7 +7,62 @@
 
 #include "rcc.h"
 
+void my_RCC_GPIOA_CLK_ENABLE(){
+	writeRCC(0, RCC_AHB1_ENR, SET);
+}
 
+void my_RCC_GPIOA_CLK_DISABLE(){
+	writeRCC(0, RCC_AHB1_ENR, RESET);
+}
+
+void my_RCC_GPIOB_CLK_ENABLE(){
+	writeRCC(1, RCC_AHB1_ENR, SET);
+}
+
+void my_RCC_GPIOB_CLK_DISABLE(){
+	writeRCC(1, RCC_AHB1_ENR, RESET);
+}
+
+void my_RCC_GPIOC_CLK_ENABLE(){
+	writeRCC(2, RCC_AHB1_ENR, SET);
+}
+
+void my_RCC_GPIOC_CLK_DISABLE(){
+	writeRCC(2, RCC_AHB1_ENR, RESET);
+}
+
+void my_RCC_GPIOD_CLK_ENABLE(){
+	writeRCC(3, RCC_AHB1_ENR, SET);
+}
+
+void my_RCC_GPIOD_CLK_DISABLE(){
+	writeRCC(3, RCC_AHB1_ENR, RESET);
+}
+
+void my_RCC_GPIOE_CLK_ENABLE(){
+	writeRCC(4, RCC_AHB1_ENR, SET);
+}
+
+void my_RCC_GPIOE_CLK_DISABLE(){
+	writeRCC(4, RCC_AHB1_ENR, RESET);
+}
+
+void my_RCC_TIM1_CLK_ENABLE(){
+
+}
+
+void my_RCC_TIM1_CLK_DISABLE(){
+
+}
+
+void my_RCC_SPI1_CLK_ENABLE(){
+
+}
+
+
+void my_RCC_SPI1_CLK_DISABLE(){
+
+}
 /*
  * @brief	Lets readRCC() and writeRCC() access any RCC register generically via an enum index
  * 			instead of hard-coding addresses each time
@@ -493,8 +548,4 @@ void writeBits(volatile uint32_t* reg, uint8_t bitPosition, uint8_t bitWidth, ui
 	uint32_t shiftedValue = (value << bitPosition) & mask;
 	*reg = (*reg & ~mask) | shiftedValue;
 }
-
-//Hello
-
-
 
