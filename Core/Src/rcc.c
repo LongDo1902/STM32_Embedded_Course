@@ -7,6 +7,9 @@
 
 #include "rcc.h"
 
+/*
+ * Enable and Disable GPIOs' Clock
+ */
 void my_RCC_GPIOA_CLK_ENABLE(){
 	writeRCC(0, RCC_AHB1_ENR, SET);
 }
@@ -47,22 +50,188 @@ void my_RCC_GPIOE_CLK_DISABLE(){
 	writeRCC(4, RCC_AHB1_ENR, RESET);
 }
 
-void my_RCC_TIM1_CLK_ENABLE(){
+void my_RCC_GPIOH_CLK_ENABLE(){
+	writeRCC(7, RCC_AHB1_ENR, SET);
+}
 
+void my_RCC_GPIOH_CLK_DISABLE(){
+	writeRCC(7, RCC_AHB1_ENR, RESET);
+}
+
+
+
+/*
+ * Enable and Disable TIMs' Clock
+ */
+void my_RCC_TIM1_CLK_ENABLE(){
+	writeRCC(0, RCC_APB2_ENR, SET);
 }
 
 void my_RCC_TIM1_CLK_DISABLE(){
-
+	writeRCC(0, RCC_APB2_ENR, RESET);
 }
 
+void my_RCC_TIM2_CLK_ENABLE(){
+	writeRCC(0, RCC_APB1_ENR, SET);
+}
+
+void my_RCC_TIM2_CLK_DISABLE(){
+	writeRCC(0, RCC_APB1_ENR, RESET);
+}
+
+void my_RCC_TIM3_CLK_ENABLE(){
+	writeRCC(1, RCC_APB1_ENR, SET);
+}
+
+void my_RCC_TIM3_CLK_DISABLE(){
+	writeRCC(1, RCC_APB1_ENR, RESET);
+}
+
+void my_RCC_TIM4_CLK_ENABLE(){
+	writeRCC(2, RCC_APB1_ENR, SET);
+}
+
+void my_RCC_TIM4_CLK_DISABLE(){
+	writeRCC(2, RCC_APB1_ENR, RESET);
+}
+
+void my_RCC_TIM5_CLK_ENABLE(){
+	writeRCC(3, RCC_APB1_ENR, SET);
+}
+
+void my_RCC_TIM5_CLK_DISABLE(){
+	writeRCC(3, RCC_APB1_ENR, RESET);
+}
+
+void my_RCC_TIM9_CLK_ENABLE(){
+	writeRCC(16, RCC_APB2_ENR, SET);
+}
+
+void my_RCC_TIM9_CLK_DISABLE(){
+	writeRCC(16, RCC_APB2_ENR, RESET);
+}
+
+void my_RCC_TIM10_CLK_ENABLE(){
+	writeRCC(17, RCC_APB2_ENR, SET);
+}
+
+void my_RCC_TIM10_CLK_DISABLE(){
+	writeRCC(17, RCC_APB2_ENR, RESET);
+}
+
+void my_RCC_TIM11_CLK_ENABLE(){
+	writeRCC(18, RCC_APB2_ENR, SET);
+}
+
+void my_RCC_TIM11_CLK_DISABLE(){
+	writeRCC(18, RCC_APB2_ENR, RESET);
+}
+
+
+
+/*
+ * Enable and Disable SPIs' Clock
+ */
 void my_RCC_SPI1_CLK_ENABLE(){
-
+	writeRCC(12, RCC_APB2_ENR, SET);
 }
-
 
 void my_RCC_SPI1_CLK_DISABLE(){
-
+	writeRCC(12, RCC_APB2_ENR, RESET);
 }
+
+void my_RCC_SPI2_CLK_ENABLE(){
+	writeRCC(14, RCC_APB1_ENR, SET);
+}
+
+void my_RCC_SPI2_CLK_DISABLE(){
+	writeRCC(14, RCC_APB1_ENR, RESET);
+}
+
+void my_RCC_SPI3_CLK_ENABLE(){
+	writeRCC(15, RCC_APB1_ENR, SET);
+}
+
+void my_RCC_SPI3_CLK_DISABLE(){
+	writeRCC(15, RCC_APB1_ENR, RESET);
+}
+
+void my_RCC_SPI4_CLK_ENABLE(){
+	writeRCC(13, RCC_APB2_ENR, SET);
+}
+
+void my_RCC_SPI4_CLK_DISABLE(){
+	writeRCC(13, RCC_APB2_ENR, RESET);
+}
+
+void my_RCC_SPI5_CLK_ENABLE(){
+	writeRCC(20, RCC_APB2_ENR, SET);
+}
+
+void my_RCC_SPI5_CLK_DISABLE(){
+	writeRCC(20, RCC_APB2_ENR, RESET);
+}
+
+
+
+/*
+ * Enable and Disable UARTs' Clock
+ */
+void my_RCC_USART1_CLK_ENABLE(){
+	writeRCC(4, RCC_APB2_ENR, SET);
+}
+
+void my_RCC_USART1_CLK_DISABLE(){
+	writeRCC(4, RCC_APB2_ENR, RESET);
+}
+
+void my_RCC_USART2_CLK_ENABLE(){
+	writeRCC(17, RCC_APB1_ENR, SET);
+}
+
+void my_RCC_USART2_CLK_DISABLE(){
+	writeRCC(17, RCC_APB1_ENR, RESET);
+}
+
+void my_RCC_USART6_CLK_ENABLE(){
+	writeRCC(5, RCC_APB2_ENR, SET);
+}
+
+void my_RCC_USART6_CLK_DISABLE(){
+	writeRCC(5, RCC_APB2_ENR, RESET);
+}
+
+
+
+/*
+ * Enable and Disable I2Cs' Clock
+ */
+void my_RCC_I2C1_CLK_ENABLE(){
+	writeRCC(21, RCC_APB1_ENR, SET);
+}
+
+void my_RCC_I2C1_CLK_DISABLE(){
+	writeRCC(21, RCC_APB1_ENR, RESET);
+}
+
+void my_RCC_I2C2_CLK_ENABLE(){
+	writeRCC(22, RCC_APB1_ENR, SET);
+}
+
+void my_RCC_I2C2_CLK_DISABLE(){
+	writeRCC(22, RCC_APB1_ENR, RESET);
+}
+
+void my_RCC_I2C3_CLK_ENABLE(){
+	writeRCC(23, RCC_APB1_ENR, SET);
+}
+
+void my_RCC_I2C3_CLK_DISABLE(){
+	writeRCC(23, RCC_APB1_ENR, RESET);
+}
+
+
+
 /*
  * @brief	Lets readRCC() and writeRCC() access any RCC register generically via an enum index
  * 			instead of hard-coding addresses each time
@@ -255,6 +424,7 @@ uint32_t readRCC(uint8_t bitPosition, RCC_Name_t mode){
 		case RCC_PLL_CFGR:
 			/*
 			 * PLLMx[5:0] at bit 0
+			 * PLLNx[8:0] at bit 6
 			 * PLLPx[1:0] at bit 16
 			 * PLLQx[3:0] at bit 24
 			 */
@@ -539,8 +709,8 @@ void writeRCC(uint8_t bitPosition, RCC_Name_t mode, uint32_t value){
  * 		The field would spill past bit 31
  */
 void writeBits(volatile uint32_t* reg, uint8_t bitPosition, uint8_t bitWidth, uint32_t value){
-	if(value >= (1U << bitWidth)) return;
 	if(bitWidth >= 32) return; //Prevent undefined behavior: 32-bit shift is invalid on 32-bit targets
+	if(value >= (1U << bitWidth)) return;
 	if((bitWidth + bitPosition) > 32) return; //Prevent writing beyong 32-bit reg boundary
 
 	//Mask off the old bit and or with new bit
