@@ -10,24 +10,28 @@
  * Initialize LEDs
  */
 void LED_Green_Init(){
-	__HAL_RCC_GPIOD_CLK_ENABLE(); //Enable RCC Clock
+//	__HAL_RCC_GPIOD_CLK_ENABLE(); //Enable RCC Clock
+	my_RCC_GPIOD_CLK_ENABLE();
 	writePin(LED_Green, my_GPIOD, MODER, mode_01); //Set PD12 as output
 
 }
 
 void LED_Orange_Init(){
-	__HAL_RCC_GPIOD_CLK_ENABLE(); //Enable RCC Clock
+//	__HAL_RCC_GPIOD_CLK_ENABLE(); //Enable RCC Clock
+	my_RCC_GPIOD_CLK_ENABLE();
 	writePin(LED_Orange, my_GPIOD, MODER, mode_01); //Set PD13 as output
 
 }
 
 void LED_Red_Init(){
-	__HAL_RCC_GPIOD_CLK_ENABLE(); //Enable RCC Clock
+//	__HAL_RCC_GPIOD_CLK_ENABLE(); //Enable RCC Clock
+	my_RCC_GPIOD_CLK_ENABLE();
 	writePin(LED_Red, my_GPIOD, MODER, mode_01); //Set PD14 as output
 }
 
 void LED_Blue_Init(){
-	__HAL_RCC_GPIOD_CLK_ENABLE(); //Enable RCC Clock
+//	__HAL_RCC_GPIOD_CLK_ENABLE(); //Enable RCC Clock
+	my_RCC_GPIOD_CLK_ENABLE();
 	writePin(LED_Blue, my_GPIOD, MODER, mode_01); //Set PD14 as output
 }
 

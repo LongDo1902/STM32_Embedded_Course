@@ -13,7 +13,6 @@
 int timeCnt = 0;
 
 
-
 /*
  * @brief	Read a field of 'bitWidth' bits from a register starting at 'bitPosition'
  *
@@ -33,21 +32,81 @@ uint32_t readBits(volatile uint32_t* reg, uint8_t bitPosition, uint8_t bitWidth)
 
 
 
+/*
+ *	A Complexed dynamic function to compute PSC and ARR for required update frequency
+ *	Choose the smallest PSC that keeps ARR within range, then recomputes ARR
+ */
+TIM_Cal_t timerCalculation(uint32_t sysClkFreq, uint32_t targetHz, uint32_t maxArr){
+	TIM_Cal_t output = {0};
+
+	uint32_t psc = (sysClkFreq / (targetHz * (maxArr + 1)));
+	if(psc > 0xFFFF) psc = 0xFFFF; //PSC is 16-bit on stm32
+
+	for(;;){
+		uint32_t arr = (sysClkFreq/(targetHz * (psc + 1))) - 1;
+
+		if(arr <= maxArr){
+			output.psc = psc;
+			output.arr = arr;
+			output.actualHz = sysClkFreq / ((psc + 1) * (arr + 1));
+			return output;
+		}
+		++psc; //try next prescaler
+	}
+}
+
+
+/*
+ *
+ */
 void initTimer(TIM_Name_t userTIMx){
+	TIM_Cal_t timConfig;
+
 	switch(userTIMx){
-		case my_TIM1: __HAL_RCC_TIM1_CLK_ENABLE(); break;
-		case my_TIM2: __HAL_RCC_TIM2_CLK_ENABLE(); break;
-		case my_TIM3: __HAL_RCC_TIM3_CLK_ENABLE(); break;
-		case my_TIM4: __HAL_RCC_TIM4_CLK_ENABLE(); break;
-		case my_TIM5: __HAL_RCC_TIM5_CLK_ENABLE(); break;
-		case my_TIM9: __HAL_RCC_TIM9_CLK_ENABLE(); break;
-		case my_TIM10: __HAL_RCC_TIM10_CLK_ENABLE(); break;
-		case my_TIM11: __HAL_RCC_TIM11_CLK_ENABLE(); break;
+		case my_TIM1: //16-bit timer
+			my_RCC_TIM1_CLK_ENABLE();
+			timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFF);
+			break;
+
+		case my_TIM2: //32-bit timer
+			my_RCC_TIM2_CLK_ENABLE();
+			timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFFFFFF);
+			break;
+
+		case my_TIM3: //16-bit timer
+			my_RCC_TIM3_CLK_ENABLE();
+			timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFF);
+			break;
+
+		case my_TIM4: //16-bit timer
+			my_RCC_TIM4_CLK_ENABLE();
+			timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFF);
+			break;
+
+		case my_TIM5: //32-bit timer
+			my_RCC_TIM5_CLK_ENABLE();
+			timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFFFFFF);
+			break;
+
+		case my_TIM9:
+			my_RCC_TIM9_CLK_ENABLE();
+			timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFF);
+			break;
+
+		case my_TIM10:
+			my_RCC_TIM10_CLK_ENABLE();
+			timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFF);
+			break;
+
+		case my_TIM11:
+			my_RCC_TIM11_CLK_ENABLE();
+			timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFF);
+			break;
 		default: return;
 	}
-	//Trigger every 1ms
-	writeTimer(0, userTIMx, TIM_PSC, TIMER_PSC - 1);
-	writeTimer(0, userTIMx, TIM_ARR, TIMER_ARR);
+
+	writeTimer(0, userTIMx, TIM_PSC, timConfig.psc);
+	writeTimer(0, userTIMx, TIM_ARR, timConfig.arr);
 	writeTimer(0, userTIMx, TIM_DIER, SET); //DMA Interrupt Enable
 	NVIC_enableIRQ(TIM1_UP_TIM10); //Enable interrupt at IRQ 25
 

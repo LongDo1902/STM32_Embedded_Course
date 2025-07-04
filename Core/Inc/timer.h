@@ -13,12 +13,11 @@
 #include "registerAddress.h"
 #include "exti.h"
 #include "stm32f4xx.h"
+#include "rcc.h"
 
 
-#define TIMER_CLK_FREQ	16000000
-#define TIMER_PSC		8000
-#define TIMER_ARR		1
-
+#define NORMAL_SYSCLK_FREQ 16000000
+#define FAST_SYSCLK_FREQ 100000000 //100MHz system clock frequency
 
 typedef enum{
 	my_TIM1, //0
@@ -62,6 +61,13 @@ typedef enum{
 	TIM5_OR,
 	TIM11_OR
 }TIM_Mode_t;
+
+
+typedef struct{
+	uint32_t psc;
+	uint32_t arr;
+	uint32_t actualHz;
+}TIM_Cal_t;
 
 
 /*

@@ -14,7 +14,7 @@
 
 
 char session[15] = "RCC";
-int userDelay = 500; //ms
+int userDelay = 2000; //ms
 
 uint32_t* desiredOffsetAddr = (uint32_t*)0x20000000;
 
@@ -99,7 +99,7 @@ int main(void){
 
 		while(1){
 			LED_Control(LED_Red, 1);
-			delay(userDelay); //Seems to be abit slower than the actual time
+			delay(userDelay);
 			LED_Control(LED_Red, 0);
 			delay(userDelay);
 		}
@@ -107,8 +107,16 @@ int main(void){
 
 	else if(strcmp(session, "RCC") == 0){
 		RCC_init();
+		LED_Blue_Init();
+		LED_Red_Init();
 		while(1){
+			LED_Control(LED_Blue, 1);
+			LED_Control(LED_Red, 1);
+			delay(userDelay);
 
+			LED_Control(LED_Red, 0);
+			LED_Control(LED_Blue, 0);
+			delay(userDelay);
 		}
 	}
 }
