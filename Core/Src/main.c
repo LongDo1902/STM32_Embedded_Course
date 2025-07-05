@@ -41,7 +41,6 @@ int main(void){
 		EXTI_init(0, my_EXTI_TRIGGER_BOTH, EXTI0);
 		vectorTableOffset(desiredOffsetAddr);
 		user_IRQHandler(userIRQHandlerFunction, 0x58); //How to do this??? The green interrupt does not work here
-
 		while(1){
 			LED_Control(LED_Red, 1);
 			delay(userDelay);

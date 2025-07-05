@@ -136,16 +136,16 @@ typedef struct{
  * I2C Register Offsets
  */
 typedef struct{
-	volatile uint32_t CR1;		//0x00 (Control Reg 1)
-	volatile uint32_t CR2;		//0x04 (Control Reg 2)
-	volatile uint32_t OAR1;		//0x08 (Own Addr Reg 1)
-	volatile uint32_t OAR2;		//0x0C (Own Addr Reg 2)
-	volatile uint32_t DR;		//0x10 (Data Reg)
-	volatile uint32_t SR1;		//0x14 (Status Reg 1)
-	volatile uint32_t SR2;		//0x18 (Status Reg 2)
-	volatile uint32_t CCR;		//0x1C (Clock Control Reg)
-	volatile uint32_t TRISE;	//0x20 (TRISE Reg)
-	volatile uint32_t FLTR;		//0x24 (FLTR Reg)
+	volatile uint32_t I2C_CR1;		//0x00 (Control Reg 1)
+	volatile uint32_t I2C_CR2;		//0x04 (Control Reg 2)
+	volatile uint32_t I2C_OAR1;		//0x08 (Own Addr Reg 1)
+	volatile uint32_t I2C_OAR2;		//0x0C (Own Addr Reg 2)
+	volatile uint32_t I2C_DR;		//0x10 (Data Reg)
+	volatile uint32_t I2C_SR1;		//0x14 (Status Reg 1)
+	volatile uint32_t I2C_SR2;		//0x18 (Status Reg 2)
+	volatile uint32_t I2C_CCR;		//0x1C (Clock Control Reg)
+	volatile uint32_t I2C_TRISE;	//0x20 (TRISE Reg)
+	volatile uint32_t I2C_FLTR;		//0x24 (FLTR Reg)
 }I2C_Register_Offset_t;
 
 /*
@@ -317,6 +317,13 @@ typedef struct{
 #define UART1_REG ((volatile UART_Register_Offset_t*)UART1_BASE_ADDR)
 #define UART2_REG ((volatile UART_Register_Offset_t*)UART2_BASE_ADDR)
 #define UART6_REG ((volatile UART_Register_Offset_t*)UART6_BASE_ADDR)
+
+/*
+ * I2C Reg Pointers
+ */
+#define I2C1_REG ((volatile I2C_Register_Offset_t*)I2C1_BASE_ADDR)
+#define I2C2_REG ((volatile I2C_Register_Offset_t*)I2C2_BASE_ADDR)
+#define I2C3_REG ((volatile I2C_Register_Offset_t*)I2C3_BASE_ADDR)
 
 /*
  * SPI Reg Pointers

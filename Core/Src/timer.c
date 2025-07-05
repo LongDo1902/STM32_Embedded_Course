@@ -1,5 +1,9 @@
 /*
- * timer.c
+ * @file	timer.c
+ * @brief	Timer utilities  for STM32F4 (TIM1 to TIM11)
+ * 			Dynamic PSC/ARR calculation to hit target update rates
+ * 			Safe bit-field access with validity checks
+ * 			1kHz system tick using TIM1 + IRQ 25(TIM1_UP_TIM10)
  *
  *  Created on: Jun 20, 2025
  *      Author: dobao
@@ -8,9 +12,227 @@
 #include "timer.h"
 
 /*
- * Global parameters
+ * ------------------------------------------------------------
+ * Globals
+ * ------------------------------------------------------------
  */
-int timeCnt = 0;
+static volatile int timeCnt = 0; //Millisecond counter
+
+
+/*
+ * ------------------------------------------------------------
+ * Validation Helper
+ * ------------------------------------------------------------
+ */
+
+/*
+ * @brief	check if a bit position in a specific TIMER's register is valid
+ *
+ * @param	bitPosition		Bit location (index) to check (0-31)
+ * @param	userTIMx 		my_TIM1 to my_TIM11 (timer instance)
+ * @param	mode			Target timer register (e.g., TIM_CR1, TIM_CR2, etc.)
+ *
+ * @return	true if the bit position is valid for the given timer and register, else returns false
+ */
+static inline bool isValidTimerBit(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
+	switch(mode){
+		/*
+		 * TIMx_CR1:
+		 * 		TIM1 to TIM5: valid bits are [0:9]
+		 * 		TIM9 to TIM11: valid bits are [0:9] excluding [4:6]
+		 */
+		case TIM_CR1:
+			return ((userTIMx >= my_TIM1 && userTIMx <= my_TIM5) && bitPosition < 10) ||
+				   ((userTIMx >= my_TIM9 && userTIMx <= my_TIM11) && bitPosition < 10 && !(bitPosition >= 4 && bitPosition <= 6));
+		break;
+
+		/*
+		 * TIMx_CR2:
+		 * 		TIM1: reserved bits at 1 and 15
+		 * 		TIM2 to TIM5: valid bits at [3:7]
+		 * 		TIM9 to TIM11 has no CR2
+		 */
+		case TIM_CR2:
+			return (userTIMx == my_TIM1 && bitPosition != 1 && bitPosition != 15) ||
+				   ((userTIMx >= my_TIM2 && userTIMx <= my_TIM5) && (bitPosition >= 3 && bitPosition <= 7));
+		break;
+
+		/*
+		 * TIMx_SMCR
+		 * 		TIM1 to TIM5: reserved bits at 3
+		 * 		TIM9: reserved at bits 3 and [8:15]
+		 * 		TIM10 to TIM11 does not have TIMx_SMCR
+		 */
+		case TIM_SMCR:
+			return ((userTIMx >= my_TIM1 && userTIMx <= my_TIM5) && bitPosition != 3) ||
+					(userTIMx == my_TIM9 && bitPosition < 8 && bitPosition != 3);
+		break;
+
+		/*
+		 * TIMx_DIER
+		 * 		TIM1: reserved bit at 15
+		 * 		TIM2 to TIM5: reserved bits at 15, 13, 7, 5
+		 * 		TIM9: reserved bits within [3:5] and [7:15]
+		 * 		TIM10 to TIM11: valid bits at 0 and 1
+		 */
+		case TIM_DIER:
+			return (userTIMx == my_TIM1 && bitPosition != 15) ||
+				  ((userTIMx >= my_TIM2 && userTIMx <= my_TIM5) && bitPosition != 15 && bitPosition != 13 && bitPosition != 7 && bitPosition != 5) ||
+				   (userTIMx == my_TIM9 && !(bitPosition >= 3 && bitPosition <= 5) && !(bitPosition >= 7 && bitPosition <= 15)) ||
+				  ((userTIMx == my_TIM10 || userTIMx == my_TIM11) && (bitPosition == 0 || bitPosition == 1));
+		break;
+
+		/*
+		 * TIMx_SR
+		 * 		TIM1: reserved bits at [13:15] and 8
+		 * 		TIM2 to TIM5: reserved bits at [13:15], [7:8], and 5
+		 * 		TIM9: reserved bits at [11:15], [7:8] and [3:5]
+		 * 		TIM10 to TIM11: valid bits at 0, 1, 9
+		 */
+		case TIM_SR:
+			return(userTIMx == my_TIM1 && !(bitPosition >= 13 && bitPosition <= 15) && bitPosition != 8) ||
+				 ((userTIMx >= my_TIM2 && userTIMx <= my_TIM5) && !(bitPosition >= 13 && bitPosition <= 15) && bitPosition != 8 && bitPosition != 7 && bitPosition != 5) ||
+				  (userTIMx == my_TIM9 && !(bitPosition >= 11 && bitPosition <= 15) && bitPosition != 8 && bitPosition != 7 && !(bitPosition >= 3 && bitPosition <= 5)) ||
+				 ((userTIMx == my_TIM10 || userTIMx == my_TIM11) && (bitPosition == 9 || bitPosition == 1 || bitPosition == 0));
+		break;
+
+		/*
+		 * TIMx_EGR
+		 * 		TIM1: valid bits [0:7]
+		 * 		TIM2 to TIM5: valid bits [0:6] excluding bit 5
+		 * 		TIM9: valid bits at 6 and [0:2]
+		 * 		TIM10 to TIM11: valid bits at [0:1]
+		 */
+		case TIM_EGR:
+			return (userTIMx == my_TIM1 && (bitPosition >= 0 && bitPosition <= 7)) ||
+				  ((userTIMx >= my_TIM2 && userTIMx <= my_TIM5) && (bitPosition >= 0 && bitPosition <= 6) && bitPosition != 5) ||
+				   (userTIMx == my_TIM9 && (bitPosition == 6 || (bitPosition >= 0 && bitPosition <= 2))) ||
+				  ((userTIMx == my_TIM10 || userTIMx == my_TIM11) && (bitPosition == 1 || bitPosition == 0));
+		break;
+
+		/*
+		 * TIMx_CCER
+		 * 		TIM1: valid bits [0:13]
+		 * 		TIM2 to TIM5: reserved bits at 14, 10, 6, 2
+		 * 		TIM9: reserved bits at [8:15], 6, 2
+		 * 		TIM10 to TIM11: valid bits at 3, 1, 0
+		 */
+		case TIM_CCER:
+			return (userTIMx == my_TIM1 && (bitPosition >= 0 && bitPosition <= 13)) ||
+				  ((userTIMx >= my_TIM2 && userTIMx <= my_TIM5) && bitPosition != 14 && bitPosition != 10 && bitPosition != 6 && bitPosition != 2) ||
+				   (userTIMx == my_TIM9 && bitPosition < 8 && bitPosition != 6 && bitPosition != 2) ||
+				  ((userTIMx == my_TIM10 || userTIMx == my_TIM11) && (bitPosition == 3 || bitPosition == 1 || bitPosition == 0));
+		break;
+
+		/*
+		 * TIMx_CNT
+		 */
+		case TIM_CNT:
+			return bitPosition == 0;
+		break;
+
+		/*
+		 * TIMx_PSC
+		 */
+		case TIM_PSC:
+			return bitPosition == 0;
+		break;
+
+		/*
+		 * TIMx_ARR
+		 */
+		case TIM_ARR:
+			return bitPosition == 0;
+		break;
+
+		/*
+		 * TIMx_RCR
+		 * 		Only available in TIM1
+		 * 		TIM1: valid bits [0:7]
+		 */
+		case TIM_RCR:
+			return userTIMx == my_TIM1 && bitPosition <= 7;
+		break;
+
+		/*
+		 * TIMx_CCR1 is available for all timers
+		 */
+		case TIM_CCR1:
+			return bitPosition == 0;
+		break;
+
+		/*
+		 * TIMx_CCR2 is not available on TIM10 and TIM11
+		 */
+		case TIM_CCR2:
+			return (userTIMx >= my_TIM1 && userTIMx <= my_TIM9) && bitPosition == 0;
+		break;
+
+		/*
+		 * TIMx_CCR3 is only available on TIM1 to TIM5
+		 */
+		case TIM_CCR3:
+			return (userTIMx >= my_TIM1 && userTIMx <= my_TIM5) && bitPosition == 0;
+		break;
+
+		/*
+		 * TIMx_CCR4 is only available on TIM1 to TIM5
+		 */
+		case TIM_CCR4:
+			return (userTIMx >= my_TIM1 && userTIMx <= my_TIM5) && bitPosition == 0;
+		break;
+
+		/*
+		 * TIMx_BDTR is only available on TIM1
+		 */
+		case TIM_BDTR:
+			return userTIMx == my_TIM1;
+		break;
+
+		/*
+		 * TIMx_DCR
+		 * 		Only available on TIM1 to TIM5
+		 * 		All have reserved bits in [5:7] and [13:15]
+		 */
+		case TIM_DCR:
+			return (userTIMx >= my_TIM1 && userTIMx <= my_TIM5) && !(bitPosition >= 5 && bitPosition <= 7) && !(bitPosition >= 13 && bitPosition <= 15);
+		break;
+
+		/*
+		 * TIMx_DMAR
+		 * 		Only available in TIM1 to TIM5
+		 */
+		case TIM_DMAR:
+			return (userTIMx >= my_TIM1 && userTIMx <= my_TIM5) && bitPosition == 0;
+		break;
+
+		/*
+		 * TIM2_OR
+		 * 		TIM2: valid bits at 11 and 10
+		 */
+		case TIM2_OR:
+			return userTIMx == my_TIM2 && bitPosition == 10;
+		break;
+
+		/*
+		 * TIM5_OR
+		 * 		TIM5: valid bits at 7 and 6
+		 */
+		case TIM5_OR:
+			return userTIMx == my_TIM5 && bitPosition == 6;
+		break;
+
+		/*
+		 * TIM11_OR
+		 * 		TIM11: valid bits at 1 and 0
+		 */
+		case TIM11_OR:
+			return userTIMx == my_TIM11 && bitPosition == 0;
+		break;
+
+		default: return false;
+	}
+}
 
 
 /*
@@ -31,102 +253,6 @@ uint32_t readBits(volatile uint32_t* reg, uint8_t bitPosition, uint8_t bitWidth)
 }
 
 
-
-/*
- *	A Complexed dynamic function to compute PSC and ARR for required update frequency
- *	Choose the smallest PSC that keeps ARR within range, then recomputes ARR
- */
-TIM_Cal_t timerCalculation(uint32_t sysClkFreq, uint32_t targetHz, uint32_t maxArr){
-	TIM_Cal_t output = {0};
-
-	uint32_t psc = (sysClkFreq / (targetHz * (maxArr + 1)));
-	if(psc > 0xFFFF) psc = 0xFFFF; //PSC is 16-bit on stm32
-
-	for(;;){
-		uint32_t arr = (sysClkFreq/(targetHz * (psc + 1))) - 1;
-
-		if(arr <= maxArr){
-			output.psc = psc;
-			output.arr = arr;
-			output.actualHz = sysClkFreq / ((psc + 1) * (arr + 1));
-			return output;
-		}
-		++psc; //try next prescaler
-	}
-}
-
-
-/*
- *
- */
-void initTimer(TIM_Name_t userTIMx){
-	TIM_Cal_t timConfig;
-
-	switch(userTIMx){
-		case my_TIM1: //16-bit timer
-			my_RCC_TIM1_CLK_ENABLE();
-			timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFF);
-			break;
-
-		case my_TIM2: //32-bit timer
-			my_RCC_TIM2_CLK_ENABLE();
-			timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFFFFFF);
-			break;
-
-		case my_TIM3: //16-bit timer
-			my_RCC_TIM3_CLK_ENABLE();
-			timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFF);
-			break;
-
-		case my_TIM4: //16-bit timer
-			my_RCC_TIM4_CLK_ENABLE();
-			timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFF);
-			break;
-
-		case my_TIM5: //32-bit timer
-			my_RCC_TIM5_CLK_ENABLE();
-			timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFFFFFF);
-			break;
-
-		case my_TIM9:
-			my_RCC_TIM9_CLK_ENABLE();
-			timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFF);
-			break;
-
-		case my_TIM10:
-			my_RCC_TIM10_CLK_ENABLE();
-			timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFF);
-			break;
-
-		case my_TIM11:
-			my_RCC_TIM11_CLK_ENABLE();
-			timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFF);
-			break;
-		default: return;
-	}
-
-	writeTimer(0, userTIMx, TIM_PSC, timConfig.psc);
-	writeTimer(0, userTIMx, TIM_ARR, timConfig.arr);
-	writeTimer(0, userTIMx, TIM_DIER, SET); //DMA Interrupt Enable
-	NVIC_enableIRQ(TIM1_UP_TIM10); //Enable interrupt at IRQ 25
-
-	writeTimer(0, userTIMx, TIM_CR1, SET); //Counter enabled
-}
-
-
-void TIM1_UP_TIM10_IRQHandler(){
-	timeCnt++;
-	writeTimer(0, my_TIM1, TIM_SR, RESET); //Clear the interrupt flag
-}
-
-
-void delay(int msec){
-	timeCnt = 0;
-	while(timeCnt < msec);
-}
-
-
-
 /*
  * @brief	Writes a bit field into a specific TIM register at a given position,
  * 			only if the register and bit are valid for the selected TIM peripheral
@@ -136,7 +262,6 @@ void delay(int msec){
  * @param	mode			The specific register being written (e.g., TIM_CR1, TIM_EGR, etc.)
  * @param	value			The value to write into the bit field
  */
-
 void writeTimer(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode, uint32_t value){
 	if(bitPosition > 31) return;
 
@@ -339,8 +464,6 @@ void writeTimer(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode, uint3
 	uint32_t shiftedValue = (value << bitPosition) & mask;
 	*reg = (*reg & ~mask) | shiftedValue;
 }
-
-
 
 
 /*
@@ -690,6 +813,99 @@ uint32_t readTimer(uint8_t bitPosition, TIM_Name_t userTIMx, TIM_Mode_t mode){
 		default: return ERROR_FLAG; //Invalid mode
 	}
 }
+
+
+/*
+ * --------------------------------------------------------
+ * Prescaler/ARR Calculation
+ * --------------------------------------------------------
+ */
+
+/*
+ * @brief	Compute the smallest PSC then matching ARR for a target update frequency.
+ *
+ * @param	sysClkFreq	Timer input clock (Hz)
+ * @param	targetHz	Desired update rate (Hz)
+ * @param	maxArr		Max ARR value (0xFFFF for 16-bit, 0xFFFFFFFF for 32-bit)
+ *
+ * @return	Filled ::TIM_Cal_t with psc, arr, actualHz
+ */
+TIM_Cal_t timerCalculation(uint32_t sysClkFreq, uint32_t targetHz, uint32_t maxArr){
+	TIM_Cal_t output = {0};
+
+	uint32_t psc = (sysClkFreq / (targetHz * (maxArr + 1)));
+	if(psc > 0xFFFF) psc = 0xFFFF; //PSC is 16-bit on stm32
+
+	for(;; ++psc){
+		uint32_t arr = (sysClkFreq/(targetHz * (psc + 1))) - 1;
+
+		if(arr <= maxArr){
+			output.psc = psc;
+			output.arr = arr;
+			output.actualHz = sysClkFreq / ((psc + 1) * (arr + 1));
+			return output;
+		}
+	}
+}
+
+
+/*
+ * -----------------------------------------------------
+ * Public API
+ * -----------------------------------------------------
+ */
+void initTimer(TIM_Name_t userTIMx){
+	TIM_Cal_t timConfig;
+
+	switch(userTIMx){
+		case my_TIM1: my_RCC_TIM1_CLK_ENABLE(); timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFF);
+			break;
+
+		case my_TIM2: my_RCC_TIM2_CLK_ENABLE(); timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFFFFFF);
+			break;
+
+		case my_TIM3: my_RCC_TIM3_CLK_ENABLE(); timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFF);
+			break;
+
+		case my_TIM4: my_RCC_TIM4_CLK_ENABLE();	timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFF);
+			break;
+
+		case my_TIM5: my_RCC_TIM5_CLK_ENABLE(); timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFFFFFF);
+			break;
+
+		case my_TIM9: my_RCC_TIM9_CLK_ENABLE(); timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFF);
+			break;
+
+		case my_TIM10: my_RCC_TIM10_CLK_ENABLE(); timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFF);
+			break;
+
+		case my_TIM11: my_RCC_TIM11_CLK_ENABLE(); timConfig = timerCalculation(FAST_SYSCLK_FREQ, 1000, 0xFFFF);
+			break;
+		default: return;
+	}
+
+	writeTimer(0, userTIMx, TIM_PSC, timConfig.psc);
+	writeTimer(0, userTIMx, TIM_ARR, timConfig.arr);
+	writeTimer(0, userTIMx, TIM_DIER, SET); //DMA Interrupt Enable
+	NVIC_enableIRQ(TIM1_UP_TIM10); //Enable interrupt at IRQ 25
+
+	writeTimer(0, userTIMx, TIM_CR1, SET); //Counter enabled
+}
+
+
+void TIM1_UP_TIM10_IRQHandler(){
+	timeCnt++;
+	writeTimer(0, my_TIM1, TIM_SR, RESET); //Clear the interrupt flag
+}
+
+void delay(int msec){
+	timeCnt = 0;
+	while(timeCnt < msec); //Busy wait
+}
+
+
+
+
 
 
 
