@@ -240,7 +240,7 @@ static inline bool isValidTimerBit(uint8_t bitPosition, TIM_Name_t userTIMx, TIM
  *
  * @param	reg (pointer) to the register
  * @param	bitPosition		Starting bit position (0-31)
- * @param	bitWidth		Number of bts needed to read (1 to 32)
+ * @param	bitWidth		Number of bits needed to read (1 to 32)
  *
  * @return	Extracted value
  */

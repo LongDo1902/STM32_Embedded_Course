@@ -80,7 +80,7 @@ static inline bool isValidI2CBit(uint8_t bitPosition, I2C_Mode_t mode){
  * @param	bitWidth		Field width in bits
  * @param	value			Field value (must fit in @p bitWidth)
  */
-static void writeBits(volatile uint32_t* reg, uint8_t bitPosition, uint8_t bitWidth, uint32_t value){
+static void writeI2CBits(volatile uint32_t* reg, uint8_t bitPosition, uint8_t bitWidth, uint32_t value){
 	/*
 	 * The function leaves the register unchanged if
 	 * 		@p bitPosition larger than 31 because shifting by 32 is undefined in C
@@ -98,6 +98,22 @@ static void writeBits(volatile uint32_t* reg, uint8_t bitPosition, uint8_t bitWi
 }
 
 
+/*
+ * @brief	Read a field of "bitWidth" bits from a register starting at 'bitPosition'
+ *
+ * @param	reg (pointer) to the register
+ * @param	bitPosition		Starting bit position (0-31)
+ * @param	bitWidth		Number of bits/bit size that fit @p value
+ */
+static uint32_t readI2CBits(volatile uint32_t* reg, uint8_t bitPosition, uint8_t bitWidth){
+	if(bitWidth == 32){
+		return (*reg >> bitPosition); //Full-word: no mask needed
+	}
+	uint32_t mask = ((1U << bitWidth) - 1U);
+	return (*reg >> bitPosition) & mask;
+}
+
+
 void writeI2C(uint8_t bitPosition, I2C_Name_t userI2C, I2C_Mode_t mode, uint32_t value){
 	if(!isValidI2CBit(bitPosition, mode)) return;
 	if(I2C1RegLookupTable[mode] == NULL) return;
@@ -108,28 +124,155 @@ void writeI2C(uint8_t bitPosition, I2C_Name_t userI2C, I2C_Mode_t mode, uint32_t
 
 	switch(userI2C){
 		case my_I2C1:
-			my_RCC_I2C1_CLK_ENABLE();
 			reg = I2C1RegLookupTable[mode];
 			break;
 
 		case my_I2C2:
-			my_RCC_I2C2_CLK_ENABLE();
 			reg = I2C2RegLookupTable[mode];
 			break;
 
 		case my_I2C3:
-			my_RCC_I2C3_CLK_ENABLE();
 			reg = I2C3RegLookupTable[mode];
 			break;
 
 		default: return;
 	}
 
+	uint8_t bitWidth = 1;
+
 	switch(mode){
 		case I2C_CR1:
+			writeI2CBits(reg, bitPosition, bitWidth, value);
+			break;
 
+		case I2C_CR2:
+			if(bitPosition == 0) bitWidth = 5;
+			writeI2CBits(reg, bitPosition, bitWidth, value);
+			break;
+
+		case I2C_OAR1:
+			if(bitPosition == 1) bitWidth = 7;
+			else if(bitPosition == 8) bitWidth = 2;
+			writeI2CBits(reg, bitPosition, bitWidth, value);
+			break;
+
+		case I2C_OAR2:
+			if(bitPosition == 1) bitWidth = 7;
+			writeI2CBits(reg, bitPosition, bitWidth, value);
+			break;
+
+		case I2C_DR:
+			bitWidth = 8;
+			writeI2CBits(reg, bitPosition, bitWidth, value);
+			break;
+
+		case I2C_SR1:
+			writeI2CBits(reg, bitPosition, bitWidth, value);
+			break;
+
+		case I2C_SR2:
+			if(bitPosition == 8) bitWidth = 8;
+			writeI2CBits(reg, bitPosition, bitWidth, value);
+			break;
+
+		case I2C_CCR:
+			if(bitPosition == 0) bitWidth = 12;
+			writeI2CBits(reg, bitPosition, bitWidth, value);
+			break;
+
+		case I2C_TRISE:
+			bitWidth = 6;
+			writeI2CBits(reg, bitPosition, bitWidth, value);
+			break;
+
+		case I2C_FLTR:
+			if(bitPosition == 0) bitWidth = 4;
+			writeI2CBits(reg, bitPosition, bitWidth, value);
+			break;
+
+		default: return;
 	}
 }
+
+
+uint32_t readI2C(uint8_t bitPosition, I2C_Name_t userI2C, I2C_Mode_t mode){
+	const uint32_t ERROR_FLAG = 0xFFFFFFFF;
+
+	if(!isValidI2CBit(bitPosition, mode)) return ERROR_FLAG;
+	if(bitPosition > 31) return ERROR_FLAG;
+	if(I2C1RegLookupTable[mode] == NULL) return ERROR_FLAG;
+	if(I2C2RegLookupTable[mode] == NULL) return ERROR_FLAG;
+	if(I2C3RegLookupTable[mode] == NULL) return ERROR_FLAG;
+
+	volatile uint32_t* reg;
+
+	switch(userI2C){
+		case my_I2C1:
+			reg = I2C1RegLookupTable[mode];
+			break;
+
+		case my_I2C2:
+			reg = I2C2RegLookupTable[mode];
+			break;
+
+		case my_I2C3:
+			reg = I2C3RegLookupTable[mode];
+			break;
+
+		default: return ERROR_FLAG;
+	}
+
+	uint8_t bitWidth = 1;
+	switch(mode){
+		case I2C_CR1:
+			return readI2CBits(reg, bitPosition, bitWidth);
+
+		case I2C_CR2:
+			if(bitPosition == 0) bitWidth = 6;
+			return readI2CBits(reg, bitPosition, bitWidth);
+
+		case I2C_OAR1:
+			if(bitPosition == 1) bitWidth = 7;
+			else if(bitPosition == 8) bitWidth = 2;
+			return readI2CBits(reg, bitPosition, bitWidth);
+
+		case I2C_OAR2:
+			if(bitPosition == 1) bitWidth = 7;
+			return readI2CBits(reg, bitPosition, bitWidth);
+
+		case I2C_DR:
+			bitWidth = 8;
+			return readI2CBits(reg, bitPosition, bitWidth);
+
+		case I2C_SR1:
+			return readI2CBits(reg, bitPosition, bitWidth);
+
+		case I2C_SR2:
+			if(bitPosition == 8) bitWidth = 8;
+			return readI2CBits(reg, bitPosition, bitWidth);
+
+		case I2C_CCR:
+			if(bitPosition == 0) bitWidth = 12;
+			return readI2CBits(reg, bitPosition, bitWidth);
+
+		case I2C_TRISE:
+			bitWidth = 6;
+			return readI2CBits(reg, bitPosition, bitWidth);
+
+		case I2C_FLTR:
+			if(bitPosition == 0) bitWidth = 4;
+			return readI2CBits(reg, bitPosition, bitWidth);
+
+		default: return ERROR_FLAG;
+	}
+}
+
+
+
+
+
+
+
 
 
 
