@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
-
+#include "gpio_write_read.h"
 #include "registerAddress.h"
 #include "rcc.h"
 
@@ -45,5 +45,13 @@ typedef enum{
 	my_I2C2,
 	my_I2C3
 }I2C_Name_t;
+
+typedef enum{
+	I2C_OK = 0,
+	I2C_INVALID_PIN,
+	I2C_INVALID_BUS,
+	I2C_CLOCK_OFF,
+	I2C_TIMEOUT
+}I2C_Status_t;
 
 #endif /* INC_I2C_H_ */

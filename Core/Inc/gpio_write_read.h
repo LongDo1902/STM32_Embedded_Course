@@ -77,6 +77,8 @@ typedef enum{
 	AF13 = 0xD,
 	AF14 = 0xE,
 	AF15 = 0xF,
+
+	invalidState,
 }GPIO_State_t;
 
 /*
