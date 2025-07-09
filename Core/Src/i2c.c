@@ -3,6 +3,12 @@
  *
  *  Created on: Jul 4, 2025
  *      Author: dobao
+ *
+ *	The module provides:
+ *		Register lookup tables for I2C1-3 (avoids repetitive switch-cases)
+ *		Mask tables that mark *reserved* bits so we never write them by mistake
+ *		Tiny read/write helpers that perform field-sized RMW operations
+ *		Pin initialization helpers for every legal SCL/SDA mapping on STM32F411 including correct pull-up handling
  */
 #include "i2c.h"
 
@@ -13,8 +19,8 @@
  */
 
 /*
- * @brief	Mask of valid (non-reserved) bits for every I2C reg
- * 			A zero marks a reserved bit that must not be written
+ * @brief	Bit-mask of **writable** bits for every I2C reg
+ * 			A clear bit (0) marks a *reserved* position that **must not** be written.
  *
  * 			Index:  ::I2C_Mode_t
  */
@@ -37,11 +43,6 @@ static const uint32_t I2C_VALID_BITS[I2C_REG_COUNT] = {
  * 			This static pointer array maps each value of ::I2C_Mode_t (index) to memory-mapped address
  * 			of the corresponding I2C1 Register. Using the table avoids open-coded 'switch'/'if' blocks
  * 			and makes register access simply
- *
- * 			**volatile** 	Tells the compiler that the pointed-to registers may change asynchronously
- * 							(hardware), so every read/write must be kept.
- *
- * 			**static**		Internal linkage only
  *
  * 			**I2C_REG_COUNT**	Array Length
  */
@@ -85,6 +86,13 @@ REG_TABLE_ATTR I2C3RegLookupTable[I2C_REG_COUNT] = {
 		[I2C_TRISE] = GET_I2C3_REG(I2C_TRISE),
 		[I2C_FLTR] = GET_I2C3_REG(I2C_FLTR),
 };
+
+
+/*
+ * -----------------------------------------------------------------
+ * Bit-manipulation Helpers
+ * -----------------------------------------------------------------
+ */
 
 /*
  * @brief	Check that 'mode' is in range and 'bitPosition' is not reserved
@@ -142,6 +150,12 @@ static uint32_t readI2CBits(volatile uint32_t* reg, uint8_t bitPosition, uint8_t
 
 
 /*
+ * -----------------------------------------------------------------
+ * Clock Helpers
+ * -----------------------------------------------------------------
+ */
+
+/*
  * @brief	Enable GPIOs' clock
  */
 static void enableGPIOClock(GPIO_PortName_t port){
@@ -157,6 +171,11 @@ static void enableGPIOClock(GPIO_PortName_t port){
 }
 
 
+/*
+ * -----------------------------------------------------------------
+ * Pin Initialization Helpers (SCL and SDA)
+ * -----------------------------------------------------------------
+ */
 /*
  * @brief	A helper function to intialize SCL pin for the selected I2C peripheral
  *
@@ -203,43 +222,43 @@ static I2C_Status_t I2C_sclPinInit(GPIO_Pin_t sclPin,
 	const bool hasExtPullUp = (sclPin == my_GPIO_PIN_6 && sclPort == my_GPIOB);
 
 	/* Config GPIO for I2C purpose */
-	writePin(sclPin, sclPort, MODER, 0b10); //Set pin to Alternate Function Mode
-	writePin(sclPin, sclPort, OTYPER, SET); //Set pin to Open-Drain mode
-	writePin(sclPin, sclPort, OSPEEDR, 0b11); //Set a very-high speed output pin
-	writePin(sclPin, sclPort, PUPDR, hasExtPullUp ? 0b00 : 0b01); //0b00 = floating, 0b01 = pull-up
-	writePin(sclPin, sclPort, afrReg, AF4);
+	writePin(sclPin, sclPort, MODER, AF_MODE); //Set pin to Alternate Function Mode
+	writePin(sclPin, sclPort, OTYPER, OPEN_DRAIN); //Set pin to Open-Drain mode
+	writePin(sclPin, sclPort, OSPEEDR, HIGH_SPEED); //Set a very-high speed output pin
+	writePin(sclPin, sclPort, PUPDR, hasExtPullUp ? FLOATING : PULL_UP);
+	writePin(sclPin, sclPort, afrReg, AF4); //SCL pins use AF4 on all valid pins of this MCU
 
 	return I2C_OK;
 }
 
 
 static I2C_Status_t I2C_sdaPinInit(GPIO_Pin_t sdaPin, GPIO_PortName_t sdaPort, I2C_Name_t i2cBus){
-	GPIO_State_t alternateFuncSel = 0;
+	uint8_t alternateFuncMode = 0xFF;
 
 	switch(i2cBus){
 		case my_I2C1:
-			if(sdaPort == my_GPIOB && sdaPin == my_GPIO_PIN_7){
-				alternateFuncSel = AF4;
+			if((sdaPort == my_GPIOB && (sdaPin == my_GPIO_PIN_7 || sdaPin == my_GPIO_PIN_9))){
+				alternateFuncMode = AF4;
 			} else return I2C_INVALID_PIN;
 			break;
 
 		case my_I2C2:
 			if(sdaPort == my_GPIOB && sdaPin == my_GPIO_PIN_11){
-				alternateFuncSel = AF4;
+				alternateFuncMode = AF4;
 			}
 			else if(sdaPort == my_GPIOB && sdaPin == my_GPIO_PIN_3){
-				alternateFuncSel = AF9;
+				alternateFuncMode = AF9;
 			}
 			else return I2C_INVALID_PIN;
 			break;
 
 		case my_I2C3:
 			if(sdaPort == my_GPIOC && sdaPin == my_GPIO_PIN_9){
-				alternateFuncSel = AF4;
+				alternateFuncMode = AF4;
 			}
 			else if((sdaPin == my_GPIO_PIN_4 && sdaPort == my_GPIOB) ||
 					(sdaPin == my_GPIO_PIN_8 && sdaPort == my_GPIOB)){
-				alternateFuncSel = AF9;
+				alternateFuncMode = AF9;
 			}
 			else return I2C_INVALID_PIN;
 			break;
@@ -252,11 +271,11 @@ static I2C_Status_t I2C_sdaPinInit(GPIO_Pin_t sdaPin, GPIO_PortName_t sdaPort, I
 	const bool hasExtPullUp = (sdaPort == my_GPIOB && sdaPin == my_GPIO_PIN_9);
 
 	/* Config GPIO for I2C purpose*/
-	writePin(sdaPin, sdaPort, MODER, 0b10); //Set pin to Alternate Function Mode
-	writePin(sdaPin, sdaPort, OTYPER, SET); //Set pin to Open-Drain mode
-	writePin(sdaPin, sdaPort, OSPEEDR, 0b11); //Set a very-high speed output pin
-	writePin(sdaPin, sdaPort, PUPDR, hasExtPullUp ? 0b00 : 0b01); //0b00 = floating, 0b01 = internal pull-up resistor
-	writePin(sdaPin, sdaPort, afrReg, alternateFuncSel);
+	writePin(sdaPin, sdaPort, MODER, AF_MODE); //Set pin to Alternate Function Mode
+	writePin(sdaPin, sdaPort, OTYPER, OPEN_DRAIN); //Set pin to Open-Drain mode
+	writePin(sdaPin, sdaPort, OSPEEDR, HIGH_SPEED); //Set a very-high speed output pin
+	writePin(sdaPin, sdaPort, PUPDR, hasExtPullUp ? FLOATING : PULL_UP); //0b00 = floating, 0b01 = internal pull-up resistor
+	writePin(sdaPin, sdaPort, afrReg, alternateFuncMode);
 
 	return I2C_OK;
 }

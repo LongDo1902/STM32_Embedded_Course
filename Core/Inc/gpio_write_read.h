@@ -55,10 +55,11 @@ typedef enum{
 	my_GPIO_PIN_SET = 1, 	//High
 	my_GPIO_PIN_RESET = 0,	//Low
 
-	mode_00 = 0x00, //0b00
-	mode_01 = 0x01, //0x01
-	mode_02 = 0x02, //0b10
-	mode_03 = 0x03, //0b11
+	//MODER modes:
+	INPUT_MODE 	= 0x00, //0b00
+	OUTPUT_MODE = 0x01, //0x01
+	AF_MODE 	= 0x02, //0b10
+	ANALOG_MODE = 0x03, //0b11
 
 	//Alternate Function:
 	AF0 = 0x0,
@@ -78,7 +79,21 @@ typedef enum{
 	AF14 = 0xE,
 	AF15 = 0xF,
 
-	invalidState,
+	//OTYPER modes:
+	PUSH_PULL = RESET,
+	OPEN_DRAIN = SET,
+
+	//OSPEEDR modes:
+	LOW_SPEED = 0b00,
+	MEDIUM_SPEED = 0b01,
+	FAST_SPEED = 0b10,
+	HIGH_SPEED = 0b11,
+
+	//PUPDR modes:
+	FLOATING = 0b00,
+	PULL_UP = 0b01,
+	PULL_DOWN = 0b10,
+
 }GPIO_State_t;
 
 /*
@@ -86,7 +101,6 @@ typedef enum{
  */
 typedef enum{MODER, OTYPER, OSPEEDR, PUPDR, IDR, ODR,
 			BSRR, LCKR, AFRL, AFRH}GPIO_Mode_t;
-
 
 
 /*

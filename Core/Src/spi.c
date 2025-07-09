@@ -89,7 +89,7 @@ void SPI_GPIO_init(SPI_GPIO_Config_t config){
 	Enable_GPIO_Clock(config.mosiPort);
 	Enable_GPIO_Clock(config.misoPort);
 
-	writePin(config.nssPin, config.nssPort, MODER, mode_01); //Set NSS pin as output
+	writePin(config.nssPin, config.nssPort, MODER, OUTPUT_MODE); //Set NSS pin as output
 
 	SPI_sckPin_init(config.sckPin, config.sckPort, config.SPIx);
 	SPI_mosiPin_init(config.mosiPin, config.mosiPort, config.SPIx);
@@ -157,7 +157,7 @@ void SPI_basicConfigInit(SPI_GPIO_Config_t config,
  * @param	SPIx		Target SPI (e.g., my_SPI1)
  */
 void SPI_sckPin_init(GPIO_Pin_t sckPin, GPIO_PortName_t sckPort, SPI_Name_t SPIx){
-	writePin(sckPin, sckPort, MODER, mode_02); //Config this pin in MODER to Alternate Function mode for SPI interface
+	writePin(sckPin, sckPort, MODER, AF_MODE); //Config this pin in MODER to Alternate Function mode for SPI interface
 	GPIO_Mode_t afrRegSck = (sckPin <= 7) ? AFRL : AFRH; //Check which AF reg (AFRL or AFRH) is chosen corresponding to pin number
 
 	/*
@@ -187,7 +187,7 @@ void SPI_sckPin_init(GPIO_Pin_t sckPin, GPIO_PortName_t sckPort, SPI_Name_t SPIx
  * @param	SPIx		Target SPI (e.g., my_SPI1)
  */
 void SPI_mosiPin_init(GPIO_Pin_t mosiPin, GPIO_PortName_t mosiPort, SPI_Name_t SPIx){
-	writePin(mosiPin, mosiPort, MODER, mode_02); //Config this pin in MODER to Alternate Function mode for SPI interface
+	writePin(mosiPin, mosiPort, MODER, AF_MODE); //Config this pin in MODER to Alternate Function mode for SPI interface
 	GPIO_Mode_t afrRegMosi = (mosiPin <= 7) ? AFRL : AFRH; //Check which AF reg (AFRL or AFRH) is chosen corresponding to pin number
 
 	/*
@@ -218,7 +218,7 @@ void SPI_mosiPin_init(GPIO_Pin_t mosiPin, GPIO_PortName_t mosiPort, SPI_Name_t S
  * @param	SPIx		Target SPI (e.g., my_SPI1)
  */
 void SPI_misoPin_init(GPIO_Pin_t misoPin, GPIO_PortName_t misoPort, SPI_Name_t SPIx){
-	writePin(misoPin, misoPort, MODER, mode_02);
+	writePin(misoPin, misoPort, MODER, AF_MODE);
 	GPIO_Mode_t afrRegMiso = (misoPin <= 7) ? AFRL : AFRH;
 
 	/*

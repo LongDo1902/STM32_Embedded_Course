@@ -50,7 +50,7 @@ void writePin(GPIO_Pin_t pinNum, GPIO_PortName_t port, GPIO_Mode_t mode, GPIO_St
 
 	//Handle BSRR as special write only case
 		if(mode == BSRR){
-			uint32_t mask = (state == my_GPIO_PIN_SET)
+			uint32_t mask = (state == my_GPIO_PIN_SET || state == (GPIO_State_t)SET)
 							?(1U << pinNum)			//set
 							:(1U << (pinNum + 16)); //reset
 			GPIOx -> BSRR = mask;

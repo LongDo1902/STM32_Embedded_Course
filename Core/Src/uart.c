@@ -44,8 +44,8 @@ void UART_Init(GPIO_Pin_t TXPin,
 	/*
 	 * Set TX/RXpin of a specific port to MODER mode and set its state to 0x02 (Alternate function mode)
 	 */
-	writePin(TXPin, portName, MODER, mode_02);
-	writePin(RXPin, portName, MODER, mode_02);
+	writePin(TXPin, portName, MODER, AF_MODE);
+	writePin(RXPin, portName, MODER, AF_MODE);
 
 	GPIO_Mode_t afrRegTX = (TXPin <= 7) ? AFRL : AFRH;
 	GPIO_Mode_t afrRegRX = (RXPin <= 7) ? AFRL : AFRH;
