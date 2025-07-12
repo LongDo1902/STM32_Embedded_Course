@@ -13,5 +13,7 @@
 
 #include "rcc.h"
 
+void ADC_tempSensorInit();
+float tempSensorRead();
 
 #endif /* INC_ADC_H_ */

@@ -12,9 +12,10 @@
 #include "exti.h"
 #include "rcc.h"
 #include "i2c.h"
+#include "adc.h"
 
 
-char session[15] = "I2C";
+char session[15] = "ADC";
 int userDelay = 2000; //ms
 
 uint32_t* desiredOffsetAddr = (uint32_t*)0x20000000;
@@ -139,6 +140,18 @@ int main(void){
 		uint8_t tempCfgRegRead = (uint8_t) I2C_singleByteRead(i2cConfig, 0b0011001, 0x1F);
 
 		while(1){
+		}
+	}
+
+	else if(strcmp(session, "ADC") == 0){
+		RCC_init();
+		ADC_tempSensorInit();
+		float temperatureVal = 0;
+		while(1){
+			temperatureVal = tempSensorRead();
+			delay(userDelay);
+			temperatureVal = tempSensorRead();
+			delay(userDelay);
 		}
 	}
 }
