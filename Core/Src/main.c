@@ -134,9 +134,11 @@ int main(void){
 		};
 		RCC_init();
 		I2C_basicConfigInit(i2cConfig, I2C_SM_100K, 100000, 50000000); //Standard mode 100kHz and 50MHz APB peripheral
+		uint8_t dataRead = (uint8_t) I2C_singleByteRead(i2cConfig, 0b0011001, 0x0F);
+		I2C_singleByteWrite(i2cConfig, 0b0011001, 0x1F, 0b11000000);
+		uint8_t tempCfgRegRead = (uint8_t) I2C_singleByteRead(i2cConfig, 0b0011001, 0x1F);
 
 		while(1){
-
 		}
 	}
 }

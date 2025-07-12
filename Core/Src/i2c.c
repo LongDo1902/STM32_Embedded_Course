@@ -417,21 +417,20 @@ I2C_Status_t I2C_singleByteWrite(I2C_GPIO_Config_t config, uint8_t slaveAddr, ui
 	/* Read SR1 and SR2 to clear the bit ADDR in SR1 */
 	(void)readI2C(0, config.i2cBus, I2C_SR1); //Dummy read
 	(void)readI2C(0, config.i2cBus, I2C_SR2); //Dummy read
-
 	if((readI2C(10, config.i2cBus, I2C_SR1) & 1u) == 1u){ //AF?
 		writeI2C(9, config.i2cBus, I2C_CR1, SET); //STOP
 		return I2C_NACK;
 	}
-
 	while((readI2C(10, config.i2cBus, I2C_SR1) & 1u) == 1u); //Wait until there is ACK signal from slave
 
-	/* Send the internal slave's register address (command byte) */
-	while((readI2C(7, config.i2cBus, I2C_SR1) & 1u) == 0u); //Wait until data register (transmitters) is empty
+	/* Send the slave's register address (command byte) */
+	while((readI2C(7, config.i2cBus, I2C_SR1) & 1u) == 0u); //Wait until data register (TxE) is empty
 	writeI2C(0, config.i2cBus, I2C_DR, slaveRegAddr);
 	while((readI2C(2, config.i2cBus, I2C_SR1) & 1u) == 0u); //Wait until data byte transfer succeeded
 	while((readI2C(10, config.i2cBus, I2C_SR1) & 1u) == 1u); //Wait until there is ACK signal from slave
 
 	/* Send the data byte / value to internal slave reg addr */
+	while((readI2C(7, config.i2cBus, I2C_SR1) & 1u) == 0u); //Wait until data register (TxE) is empty
 	writeI2C(0, config.i2cBus, I2C_DR, value);
 	while((readI2C(2, config.i2cBus, I2C_SR1) & 1u) == 0u); //Wait until data byte transfer succeeded
 
@@ -441,6 +440,59 @@ I2C_Status_t I2C_singleByteWrite(I2C_GPIO_Config_t config, uint8_t slaveAddr, ui
 	return I2C_OK;
 }
 
+/*
+ *
+ */
+I2C_Status_t I2C_singleByteRead(I2C_GPIO_Config_t config, uint8_t slaveAddr, uint8_t slaveRegAddr){
+	while((readI2C(1, config.i2cBus, I2C_SR2) & 1u) == 1u); //Wait until bus is not busy
+
+	/* Start a transaction */
+	writeI2C(8, config.i2cBus, I2C_CR1, SET); //1: Start generation
+	while((readI2C(0, config.i2cBus, I2C_SR1) & 1u) == 0u); //Wait until start condition generated
+
+	/* Send the 7-bit slave address + write bit */
+	uint8_t addrByte = (slaveAddr << 1) | 0; //Offset slave addr to start at bit 1 and end at 7 and leave bitPos 0 = 0 which indicates write mode
+	writeI2C(0, config.i2cBus, I2C_DR, addrByte); //Write slave addr + write mode indicator to DR holder
+	while((readI2C(1, config.i2cBus, I2C_SR1) & 1u) == 0u); //Wait until the slave's address is sent
+
+	/* Read SR1 and SR2 to clear the bit ADDR in SR1 */
+	(void)readI2C(0, config.i2cBus, I2C_SR1); //Dummy read
+	(void)readI2C(0, config.i2cBus, I2C_SR2); //Dummy read
+	if((readI2C(10, config.i2cBus, I2C_SR1) & 1u) == 1u){ //AF?
+		writeI2C(9, config.i2cBus, I2C_CR1, SET); //STOP
+		return I2C_NACK;
+	}
+	while((readI2C(10, config.i2cBus, I2C_SR1) & 1u) == 1u); //Wait until there is ACK signal from slave
+
+	/* Send the slave's register address (command byte) */
+	while((readI2C(7, config.i2cBus, I2C_SR1) & 1u) == 0u); //Wait until data register (TxE) is empty
+	writeI2C(0, config.i2cBus, I2C_DR, slaveRegAddr);
+	while((readI2C(2, config.i2cBus, I2C_SR1) & 1u) == 0u); //Wait until data byte transfer succeeded
+	while((readI2C(10, config.i2cBus, I2C_SR1) & 1u) == 1u); //Wait until there is ACK signal from slave
+
+	/* Start reading value/signal from the slave device */
+	writeI2C(8, config.i2cBus, I2C_CR1, 1); //Generate a start bit
+	while((readI2C(0, config.i2cBus, I2C_SR1) & 1u) == 0u); //Wait until start condition generated
+
+	/* Send slave addr + read bit to request slave to start a reading mode	 */
+	addrByte = (slaveAddr << 1) | 1; //Offset slave addr which starts at bit 1 and end at bit 7 and leave bitPos 0 = 1 which indicates read mode
+	writeI2C(0, config.i2cBus, I2C_DR, addrByte); //Write slave addr + read mode indicator to DR holder
+	while((readI2C(1, config.i2cBus, I2C_SR1) & 1u) == 0u); //Wait until the data byte in DR holder is sent successfully
+
+	/* Read SR1 and SR2 to clear the bit ADDR in SR1 */
+	(void)readI2C(0, config.i2cBus, I2C_SR1); //Dummy read
+	(void)readI2C(0, config.i2cBus, I2C_SR2); //Dummy read
+	while((readI2C(10, config.i2cBus, I2C_SR1) & 1u) == 1u); //Wait until there is ACK signal from slave
+
+	/* Go to Reveiver buffer (RxNE) check if data is arrived and go to I2C_DR to read the data */
+	while((readI2C(6, config.i2cBus, I2C_SR1) & 1u) == 0u); //Wait until Data register is full
+	uint8_t data = (uint8_t) readI2C(0, config.i2cBus, I2C_DR);
+
+	/* Generate stop bit */
+	writeI2C(9, config.i2cBus, I2C_CR1, SET);
+
+	return data;
+}
 
 /*
  * @brief	Initialize basic configurations for I2C
@@ -458,7 +510,7 @@ I2C_Status_t I2C_singleByteWrite(I2C_GPIO_Config_t config, uint8_t slaveAddr, ui
  * @param	sysClkFreq 	Peripheral clock frequency driving the I²C hardware, in hertz.
  */
 void I2C_basicConfigInit(I2C_GPIO_Config_t config,
-						 I2C_CCR_Mode_t mode,
+						 I2C_CCR_Mode_t ccrMode,
 						 uint32_t sclFreq,
 						 uint32_t sysClkFreq){
 	//Flexible enable I2C clock
@@ -471,7 +523,7 @@ void I2C_basicConfigInit(I2C_GPIO_Config_t config,
 	I2C_GPIO_init(config);
 	writeI2C(0, config.i2cBus, I2C_CR1, RESET); //Disable I2C peripheral before configuring it
 	writeI2C(0, config.i2cBus, I2C_CR2, (sysClkFreq/1000000U)); //Set this I2C's clock freq to 50MHz
-	if(I2C_getCCR(mode, sclFreq, sysClkFreq, config) != I2C_OK) return;
+	if(I2C_getCCR(ccrMode, sclFreq, sysClkFreq, config) != I2C_OK) return;
 //	writeI2C(0, config.i2cBus, I2C_TRISE, 51); //1000ns(from I2C spec), 20ns from 50MHz (TRISE = 1 + (1000/20) = 51)
 	writeI2C(0, config.i2cBus, I2C_CR1, SET); //Enable I2C peripheral
 }
@@ -498,6 +550,9 @@ void writeI2C(uint8_t bitPosition, I2C_Name_t i2cBus, I2C_Mode_t mode, uint32_t 
 	uint8_t bitWidth = 1;
 
 	switch(mode){
+		case I2C_CR1:
+			break;
+
 		case I2C_CR2:
 			if(bitPosition == 0) bitWidth = 6;
 			break;
@@ -515,6 +570,9 @@ void writeI2C(uint8_t bitPosition, I2C_Name_t i2cBus, I2C_Mode_t mode, uint32_t 
 			bitWidth = 8;
 			break;
 
+		case I2C_SR1:
+			break;
+
 		case I2C_SR2:
 			if(bitPosition == 8) bitWidth = 8;
 			break;
@@ -528,7 +586,7 @@ void writeI2C(uint8_t bitPosition, I2C_Name_t i2cBus, I2C_Mode_t mode, uint32_t 
 			break;
 
 		case I2C_FLTR:
-			if(bitPosition == 0) bitWidth = 0;
+			if(bitPosition == 0) bitWidth = 4;
 			break;
 
 		default: return;
@@ -585,6 +643,9 @@ uint32_t readI2C(uint8_t bitPosition, I2C_Name_t i2cBus, I2C_Mode_t mode){
 	uint8_t bitWidth = 1;
 
 	switch(mode){
+		case I2C_CR1:
+			break;
+
 		case I2C_CR2:
 			if(bitPosition == 0) bitWidth = 6;
 			break;
@@ -600,6 +661,9 @@ uint32_t readI2C(uint8_t bitPosition, I2C_Name_t i2cBus, I2C_Mode_t mode){
 
 		case I2C_DR:
 			bitWidth = 8;
+			break;
+
+		case I2C_SR1:
 			break;
 
 		case I2C_SR2:

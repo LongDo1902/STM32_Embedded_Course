@@ -83,8 +83,10 @@ typedef struct{
 void writeI2C(uint8_t bitPosition, I2C_Name_t i2cBus, I2C_Mode_t mode, uint32_t value);
 uint32_t readI2C(uint8_t bitPosition, I2C_Name_t i2cBus, I2C_Mode_t mode);
 void I2C_basicConfigInit(I2C_GPIO_Config_t config,
-						 I2C_CCR_Mode_t mode,
+						 I2C_CCR_Mode_t ccrMode,
 						 uint32_t sclFreq,
 						 uint32_t sysClkFreq);
+I2C_Status_t I2C_singleByteRead(I2C_GPIO_Config_t config, uint8_t slaveAddr, uint8_t slaveRegAddr);
+I2C_Status_t I2C_singleByteWrite(I2C_GPIO_Config_t config, uint8_t slaveAddr, uint8_t slaveRegAddr, uint8_t value);
 
 #endif /* INC_I2C_H_ */
