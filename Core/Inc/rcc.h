@@ -202,5 +202,14 @@ void my_RCC_I2C2_CLK_DISABLE();
 void my_RCC_I2C3_CLK_ENABLE();
 void my_RCC_I2C3_CLK_DISABLE();
 
+/*
+ * ----------------------------------------
+ * Peripheral Clock Control - ADC
+ * ----------------------------------------
+ */
+void my_RCC_ADC1_CLK_ENABLE();
+void my_RCC_ADC1_CLK_DISABLE();
+
+
 
 #endif /* INC_RCC_H_ */

@@ -121,6 +121,17 @@ void my_RCC_I2C3_CLK_ENABLE()	{writeRCC(23, RCC_APB1_ENR, SET);}
 void my_RCC_I2C3_CLK_DISABLE()	{writeRCC(23, RCC_APB1_ENR, RESET);}
 
 
+
+/*
+ * ------------------------------------------
+ * Peripheral Clock Helper - ADC1
+ * ------------------------------------------
+ */
+void my_RCC_ADC1_CLK_ENABLE()	{writeRCC(8, RCC_APB2_ENR, SET);}
+void my_RCC_ADC1_CLK_DISABLE()	{writeRCC(8, RCC_APB2_ENR, RESET);}
+
+
+
 /*
  * ---------------------------------------
  * Register Lookup Tables

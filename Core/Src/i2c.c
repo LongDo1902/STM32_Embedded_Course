@@ -453,7 +453,7 @@ I2C_Status_t I2C_singleByteRead(I2C_GPIO_Config_t config, uint8_t slaveAddr, uin
 	/* Send the 7-bit slave address + write bit */
 	uint8_t addrByte = (slaveAddr << 1) | 0; //Offset slave addr to start at bit 1 and end at 7 and leave bitPos 0 = 0 which indicates write mode
 	writeI2C(0, config.i2cBus, I2C_DR, addrByte); //Write slave addr + write mode indicator to DR holder
-	while((readI2C(1, config.i2cBus, I2C_SR1) & 1u) == 0u); //Wait until the slave's address is sent
+  	while((readI2C(1, config.i2cBus, I2C_SR1) & 1u) == 0u); //Wait until the slave's address is sent
 
 	/* Read SR1 and SR2 to clear the bit ADDR in SR1 */
 	(void)readI2C(0, config.i2cBus, I2C_SR1); //Dummy read
