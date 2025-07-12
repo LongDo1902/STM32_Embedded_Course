@@ -11,9 +11,10 @@
 #include "timer.h"
 #include "exti.h"
 #include "rcc.h"
+#include "i2c.h"
 
 
-char session[15] = "RCC";
+char session[15] = "I2C";
 int userDelay = 2000; //ms
 
 uint32_t* desiredOffsetAddr = (uint32_t*)0x20000000;
@@ -67,19 +68,19 @@ int main(void){
 	else if(strcmp(session, "SPI") == 0){
 
 		SPI_GPIO_Config_t spiConfig = {
-			.SPIx = my_SPI1,
+				.SPIx = my_SPI1,
 
-			.sckPin = my_GPIO_PIN_5,
-			.sckPort = my_GPIOA,
+				.sckPin = my_GPIO_PIN_5,
+				.sckPort = my_GPIOA,
 
-			.nssPin = my_GPIO_PIN_3,
-			.nssPort = my_GPIOE,
+				.nssPin = my_GPIO_PIN_3,
+				.nssPort = my_GPIOE,
 
-			.mosiPin = my_GPIO_PIN_7,
-			.mosiPort = my_GPIOA,
+				.mosiPin = my_GPIO_PIN_7,
+				.mosiPort = my_GPIOA,
 
-			.misoPin = my_GPIO_PIN_6,
-			.misoPort = my_GPIOA
+				.misoPin = my_GPIO_PIN_6,
+				.misoPort = my_GPIOA
 		};
 
 		SPI_GPIO_init(spiConfig);
@@ -116,6 +117,26 @@ int main(void){
 			LED_Control(LED_Red, 0);
 			LED_Control(LED_Blue, 0);
 			delay(userDelay);
+		}
+	}
+
+	else if(strcmp(session, "I2C") == 0){
+		I2C_GPIO_Config_t i2cConfig = {
+				.i2cBus = my_I2C1,
+
+				/* PB6 as SCL */
+				.sclPin = my_GPIO_PIN_6,
+				.sclPort = my_GPIOB,
+
+				/* PB9 as SDA */
+				.sdaPin = my_GPIO_PIN_9,
+				.sdaPort = my_GPIOB,
+		};
+		RCC_init();
+		I2C_basicConfigInit(i2cConfig, I2C_SM_100K, 100000, 50000000); //Standard mode 100kHz and 50MHz APB peripheral
+
+		while(1){
+
 		}
 	}
 }

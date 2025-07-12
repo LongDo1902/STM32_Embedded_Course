@@ -176,21 +176,20 @@ static void enableGPIOClock(GPIO_PortName_t port){
  * Pin Initialization Helpers (SCL and SDA)
  * -----------------------------------------------------------------
  */
+
 /*
  * @brief	A helper function to intialize SCL pin for the selected I2C peripheral
  *
  * The function performs:
- * 		1. Validation of the <pin, port> tuple against the requested I2C bus
- * 		2. GPIO setup in Alternate Function Open-Drain mode, very-high speed.
- * 		3. Proper pull-up handling:
- * 			+ PB6 on STM32F411 Discovery Board already has an external pull-up resistor
- * 			+ All other SCL pins enable the internal pull-up.
- *
- * @param	sclPin		GPIO pin constant
- * @param	sclPort		GPIO port constant
- * @param	i2cBus		I2C peripheral (my_I2C1, my_I2C2, my_I2C3)
+ * 		1. Validation of <pin, port> against the requested bus
+ * 		2. GPIO setup:
+ * 			Alternate function mode
+ * 			Open-Drain mode
+ * 			Very-high speed
+ * 		3. Pull-up handling
+ * 			PB6 already has a 4.7kOhm external pull-up resistor
+ * 			Use internal pull-up resistor for the rest of the pins
  */
-
 static I2C_Status_t I2C_sclPinInit(GPIO_Pin_t sclPin,
 								   GPIO_PortName_t sclPort,
 								   I2C_Name_t i2cBus){
@@ -217,11 +216,11 @@ static I2C_Status_t I2C_sclPinInit(GPIO_Pin_t sclPin,
 		default: return I2C_INVALID_BUS;
 	}
 
+	/* Config GPIO for I2C purpose */
 	enableGPIOClock(sclPort);
 	const GPIO_Mode_t afrReg = (sclPin < my_GPIO_PIN_8) ? AFRL : AFRH;
 	const bool hasExtPullUp = (sclPin == my_GPIO_PIN_6 && sclPort == my_GPIOB);
 
-	/* Config GPIO for I2C purpose */
 	writePin(sclPin, sclPort, MODER, AF_MODE); //Set pin to Alternate Function Mode
 	writePin(sclPin, sclPort, OTYPER, OPEN_DRAIN); //Set pin to Open-Drain mode
 	writePin(sclPin, sclPort, OSPEEDR, HIGH_SPEED); //Set a very-high speed output pin
@@ -232,6 +231,20 @@ static I2C_Status_t I2C_sclPinInit(GPIO_Pin_t sclPin,
 }
 
 
+/*
+ * @brief	Configure the **SDA** pin for the selected I2C peripheral.
+ *
+ * The function performs:
+ * 		1. Validation of <pin, port> against the requested bus
+ * 		2. GPIO setup:
+ * 			Alternate function mode
+ * 			Open-Drain mode
+ * 			Very-high speed
+ * 		3. Pull-up handling
+ * 			PB9 already has a 4.7kOhm external pull-up resistor
+ * 			Use internal pull-up resistor for the rest of the pins
+ * 		4. AF9 handling for some SDA pins from I2C2 and I2C3 peripherals
+ */
 static I2C_Status_t I2C_sdaPinInit(GPIO_Pin_t sdaPin, GPIO_PortName_t sdaPort, I2C_Name_t i2cBus){
 	uint8_t alternateFuncMode = 0xFF;
 
@@ -266,16 +279,101 @@ static I2C_Status_t I2C_sdaPinInit(GPIO_Pin_t sdaPin, GPIO_PortName_t sdaPort, I
 		default: return I2C_INVALID_BUS;
 	}
 
+	/* Config GPIO for I2C purpose*/
 	enableGPIOClock(sdaPort);
 	const GPIO_Mode_t afrReg = (sdaPin < my_GPIO_PIN_8) ? AFRL : AFRH;
 	const bool hasExtPullUp = (sdaPort == my_GPIOB && sdaPin == my_GPIO_PIN_9);
 
-	/* Config GPIO for I2C purpose*/
 	writePin(sdaPin, sdaPort, MODER, AF_MODE); //Set pin to Alternate Function Mode
 	writePin(sdaPin, sdaPort, OTYPER, OPEN_DRAIN); //Set pin to Open-Drain mode
 	writePin(sdaPin, sdaPort, OSPEEDR, HIGH_SPEED); //Set a very-high speed output pin
 	writePin(sdaPin, sdaPort, PUPDR, hasExtPullUp ? FLOATING : PULL_UP); //0b00 = floating, 0b01 = internal pull-up resistor
 	writePin(sdaPin, sdaPort, afrReg, alternateFuncMode);
+
+	return I2C_OK;
+}
+
+
+/*
+ * @brief	Intialize SCL and SDA pin of selected I2C peripheral
+ *
+ * @return	I2C_OK on success
+ * 			I2C_INVALID_BUS on illegal peripheral index.
+ */
+static I2C_Status_t I2C_GPIO_init(I2C_GPIO_Config_t config){
+	if(config.i2cBus >= my_I2C_COUNT){
+		return I2C_INVALID_BUS;
+	}
+	/* Configure GPIOs */
+	I2C_sclPinInit(config.sclPin, config.sclPort, config.i2cBus);
+	I2C_sdaPinInit(config.sdaPin, config.sdaPort, config.i2cBus);
+	return I2C_OK;
+}
+
+
+/*
+ * @brief	Calculate the value that must be written into I2C_CCR register so the bus
+ * 			clock (SCL) runs at the request speed, then write that value - together with
+ * 			Fast/Standard mode and duty cycle bits to the hardware register
+ *
+ * @param	mode	::I2C_CCR_Mode_t
+ * 					I2C_SM_100K: Standard-mode 100KHz
+ * 					I2C_FM_400K_DUTY_2LOW_1HIGH: Fast-mode 400kHz, Tlow/Thigh = 2/1
+ * 					I2C_FM_400k_DUTY_16LOW_9HIGH: Fast-mode 400kHz, TLow/Thigh = 16/9
+ *
+ * @param	sclFreq		Desired SCL frequency in hertz (100k or 400k)
+ * @param	sysClkFreq	Peripheral Clock that feeds the I2C unit
+ * @param 	config		Structure that hold the I2C pins and i2cBus
+ *
+ * @retval	uint32_t crr value (0 to 0x0FFF) on success
+ * 			ERROR if something wrong.
+ */
+static I2C_Status_t I2C_getCCR(I2C_CCR_Mode_t mode,
+					   uint32_t sclFreq,
+					   uint32_t sysClkFreq,
+					   I2C_GPIO_Config_t config){
+
+	/*
+	 * sclFreq must be non-zero and not greater than 400kHz
+	 * sysClkFreq must be at least 2MHz
+	 */
+	if(sclFreq == 0 || sclFreq > 400000U || sysClkFreq == 0 || sysClkFreq < 2000000U) return I2C_ERROR;
+
+	uint32_t minCcr = 4;
+	uint32_t ccr = 0;
+	uint8_t fsMode = 0;
+	uint8_t dutyMode = 0;
+
+	switch(mode){
+		case I2C_SM_100K:
+			fsMode = 0;
+			dutyMode = 0;
+			ccr = sysClkFreq / (2U * sclFreq);
+			break;
+
+		case I2C_FM_400K_DUTY_2LOW_1HIGH:
+			fsMode = 1;
+			dutyMode = 0;
+			ccr = sysClkFreq / (3U * sclFreq);
+			minCcr = 1; //Fast mode allows minimum CCR value = 1
+			break;
+
+		case I2C_FM_400K_DUTY_16LOW_9HIGH:
+			fsMode = 1;
+			dutyMode = 1;
+			ccr = sysClkFreq / (25U * sclFreq);
+			minCcr = 1; //Fast mode allows minimum CCR value = 1
+			break;
+
+		default: return I2C_ERROR;
+	}
+	if(ccr < minCcr) ccr = minCcr;
+	if(ccr > 0x0FFF) return I2C_ERROR;
+
+	/* Program bit 14 and 15 of I2C_CCR and write CCR val into I2C_CCR */
+	writeI2C(15, config.i2cBus, I2C_CCR, fsMode);
+	writeI2C(14, config.i2cBus, I2C_CCR, dutyMode);
+	writeI2C(0, config.i2cBus, I2C_CCR, ccr);
 
 	return I2C_OK;
 }
@@ -288,24 +386,96 @@ static I2C_Status_t I2C_sdaPinInit(GPIO_Pin_t sdaPin, GPIO_PortName_t sdaPort, I
  */
 
 /*
- * @brief	Intialize SCL and SDA pin of selected I2C peripheral
+ * @brief	write one byte to a register of a 7-bit addressed I2C slave
  *
- * @return	I2C_OK if everything is okay
- * 			I2C_INVALID_BUS if user input incorrect I2C peripheral.
+ * Sequence:
+ * 		1. Wait until the bus is idle.
+ * 		2. Generate a START
+ * 		3. Send <slaveAddr, Write>.
+ * 		4. Abort on a NACK (AF flag)
+ * 		5. Send the target register address
+ * 		6. send the data byte
+ * 		7. Generate a STOP
+ *
+ * @param	config			::I2C_GPIO_Config_t, config.i2cBus (my_I2C1 to my_I2C3)
+ * @param	slaveAddr		Slave device address which is a 7-bits address
+ * @param	slaveRegAddr	Desired reg addr of that slave device that we want to write the value in
+ * @param	value			Single Byte Data packet is ready to be sent from master to slave device.
  */
-I2C_Status_t I2C_pinInit(GPIO_Pin_t sclPin, GPIO_PortName_t sclPort,
-				 	 	 GPIO_Pin_t sdaPin, GPIO_PortName_t sdaPort,
-						 I2C_Name_t i2cBus){
-	switch(i2cBus){
+I2C_Status_t I2C_singleByteWrite(I2C_GPIO_Config_t config, uint8_t slaveAddr, uint8_t slaveRegAddr, uint8_t value){
+	while((readI2C(1, config.i2cBus, I2C_SR2) & 1u) == 1u); //Wait until bus is not busy
+
+	/* Start a transaction */
+	writeI2C(8, config.i2cBus, I2C_CR1, SET); //1: Start generation
+	while((readI2C(0, config.i2cBus, I2C_SR1) & 1u) == 0u); //Wait until start condition generated
+
+	/* Send the 7-bit slave address + write bit */
+	uint8_t addrByte = (slaveAddr << 1) | 0; //Offset slave addr to start at bit 1 and end at 7 and leave bitPos 0 = 0 which indicates write mode
+	writeI2C(0, config.i2cBus, I2C_DR, addrByte); //Write the slave addr + write mode indicator to DR holder
+	while((readI2C(1, config.i2cBus, I2C_SR1) & 1u) == 0u); //Wait until the slave's address is sent
+
+	/* Read SR1 and SR2 to clear the bit ADDR in SR1 */
+	(void)readI2C(0, config.i2cBus, I2C_SR1); //Dummy read
+	(void)readI2C(0, config.i2cBus, I2C_SR2); //Dummy read
+
+	if((readI2C(10, config.i2cBus, I2C_SR1) & 1u) == 1u){ //AF?
+		writeI2C(9, config.i2cBus, I2C_CR1, SET); //STOP
+		return I2C_NACK;
+	}
+
+	while((readI2C(10, config.i2cBus, I2C_SR1) & 1u) == 1u); //Wait until there is ACK signal from slave
+
+	/* Send the internal slave's register address (command byte) */
+	while((readI2C(7, config.i2cBus, I2C_SR1) & 1u) == 0u); //Wait until data register (transmitters) is empty
+	writeI2C(0, config.i2cBus, I2C_DR, slaveRegAddr);
+	while((readI2C(2, config.i2cBus, I2C_SR1) & 1u) == 0u); //Wait until data byte transfer succeeded
+	while((readI2C(10, config.i2cBus, I2C_SR1) & 1u) == 1u); //Wait until there is ACK signal from slave
+
+	/* Send the data byte / value to internal slave reg addr */
+	writeI2C(0, config.i2cBus, I2C_DR, value);
+	while((readI2C(2, config.i2cBus, I2C_SR1) & 1u) == 0u); //Wait until data byte transfer succeeded
+
+	/* Generate stop bit */
+	writeI2C(9, config.i2cBus, I2C_CR1, SET);
+
+	return I2C_OK;
+}
+
+
+/*
+ * @brief	Initialize basic configurations for I2C
+ *
+ * 			Enable clock for selected I2C bus
+ * 			Then, initialize I2C-related pins
+ * 			Must select APB frequency that matches setting in RCC.c which is 50MHz
+ * 			Have a helper function (I2C_getCCR) that get automatically get CCR value based on sysClkFreq, desired SCL clock and Sm or Fm mode
+ * 			Set TRISE to let MCU know the time limit of getting from low to high so it can keep the timing orrect
+ * 			Enable I2C peripheral
+ *
+ * @param 	config	Pin mapping and bus identifier for this I²C instance.
+ * @param	mode	Timing profile (100kHz standard mode or one of the 400kHz fast-mode options).
+ * @param	sclFreq 	Desired SCL clock in hertz (100000 or 400000).
+ * @param	sysClkFreq 	Peripheral clock frequency driving the I²C hardware, in hertz.
+ */
+void I2C_basicConfigInit(I2C_GPIO_Config_t config,
+						 I2C_CCR_Mode_t mode,
+						 uint32_t sclFreq,
+						 uint32_t sysClkFreq){
+	//Flexible enable I2C clock
+	switch(config.i2cBus){
 		case my_I2C1: my_RCC_I2C1_CLK_ENABLE(); break;
 		case my_I2C2: my_RCC_I2C2_CLK_ENABLE(); break;
 		case my_I2C3: my_RCC_I2C3_CLK_ENABLE(); break;
-		default: return I2C_INVALID_BUS;
+		default: return;
 	}
-	I2C_sclPinInit(sclPin, sclPort, i2cBus);
-	I2C_sdaPinInit(sdaPin, sdaPort, i2cBus);
-	return I2C_OK;
+	I2C_GPIO_init(config);
+	writeI2C(0, config.i2cBus, I2C_CR1, RESET); //Disable I2C peripheral before configuring it
+	writeI2C(0, config.i2cBus, I2C_CR2, (sysClkFreq/1000000U)); //Set this I2C's clock freq to 50MHz
+	if(I2C_getCCR(mode, sclFreq, sysClkFreq, config) != I2C_OK) return;
+//	writeI2C(0, config.i2cBus, I2C_TRISE, 51); //1000ns(from I2C spec), 20ns from 50MHz (TRISE = 1 + (1000/20) = 51)
+	writeI2C(0, config.i2cBus, I2C_CR1, SET); //Enable I2C peripheral
 }
+
 
 /*
  * @brief	Write a bit-field to an I2C peripheral register
@@ -387,11 +557,9 @@ void writeI2C(uint8_t bitPosition, I2C_Name_t i2cBus, I2C_Mode_t mode, uint32_t 
 	if(reg == NULL) return; //Peripheral not present on this part
 
 	//Disallow writes to read-only status reg except write to clear bits
-	if(mode == I2C_SR1 || mode == I2C_SR2){
+	if((mode == I2C_SR1 || mode == I2C_SR2) && value != 0){
 		//Only allow write-to-clear its (set value to 0 to clear)
-		if(value != 0){
 			return;
-		}
 	}
 
 	writeI2CBits(reg, bitPosition, bitWidth, value);
@@ -477,10 +645,6 @@ uint32_t readI2C(uint8_t bitPosition, I2C_Name_t i2cBus, I2C_Mode_t mode){
 
 	return readI2CBits(reg, bitPosition, bitWidth);
 }
-
-
-
-
 
 
 

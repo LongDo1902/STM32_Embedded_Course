@@ -43,15 +43,48 @@ typedef enum{
 typedef enum{
 	my_I2C1,
 	my_I2C2,
-	my_I2C3
+	my_I2C3,
+
+	my_I2C_COUNT
 }I2C_Name_t;
 
 typedef enum{
+	I2C_SM_100K,
+	I2C_FM_400K_DUTY_2LOW_1HIGH,
+	I2C_FM_400K_DUTY_16LOW_9HIGH,
+}I2C_CCR_Mode_t;
+
+typedef enum{
 	I2C_OK = 0,
+	I2C_ERROR,
 	I2C_INVALID_PIN,
 	I2C_INVALID_BUS,
-	I2C_CLOCK_OFF,
-	I2C_TIMEOUT
+	I2C_TIMEOUT,
+	I2C_NACK,
+	I2C_ACK,
+	I2C_BUSY
 }I2C_Status_t;
+
+typedef struct{
+	I2C_Name_t i2cBus;
+
+	GPIO_Pin_t sclPin;
+	GPIO_PortName_t sclPort;
+
+	GPIO_Pin_t sdaPin;
+	GPIO_PortName_t sdaPort;
+}I2C_GPIO_Config_t;
+
+/*
+ * ---------------------------------------------------------
+ * Function Declarations
+ * ---------------------------------------------------------
+ */
+void writeI2C(uint8_t bitPosition, I2C_Name_t i2cBus, I2C_Mode_t mode, uint32_t value);
+uint32_t readI2C(uint8_t bitPosition, I2C_Name_t i2cBus, I2C_Mode_t mode);
+void I2C_basicConfigInit(I2C_GPIO_Config_t config,
+						 I2C_CCR_Mode_t mode,
+						 uint32_t sclFreq,
+						 uint32_t sysClkFreq);
 
 #endif /* INC_I2C_H_ */
