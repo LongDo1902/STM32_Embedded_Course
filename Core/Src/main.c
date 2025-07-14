@@ -15,7 +15,7 @@
 #include "adc.h"
 
 
-char session[15] = "ADC";
+char session[15] = "startup";
 int userDelay = 300; //ms
 float temperatureVal = 0.0f;
 
@@ -149,6 +149,18 @@ int main(void){
 		ADC_temperatureSensorInit();
 		while(1){
 			temperatureVal = temperatureSensorRead();
+			delay(userDelay);
+		}
+	}
+
+	else if(strcmp(session, "startup") == 0){
+		RCC_init();
+		LED_Blue_Init();
+
+		while(1){
+			LED_Control(LED_Blue, 1);
+			delay(userDelay);
+			LED_Control(LED_Blue, 0);
 			delay(userDelay);
 		}
 	}

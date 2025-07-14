@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include "stm32f4xx_hal.h"
 #include "registerAddress.h"
+#include "rcc.h"
 
 /*
  * Collections of pins 0 to 15
