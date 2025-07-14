@@ -16,7 +16,8 @@
 
 
 char session[15] = "ADC";
-int userDelay = 2000; //ms
+int userDelay = 300; //ms
+float temperatureVal = 0.0f;
 
 uint32_t* desiredOffsetAddr = (uint32_t*)0x20000000;
 
@@ -145,12 +146,9 @@ int main(void){
 
 	else if(strcmp(session, "ADC") == 0){
 		RCC_init();
-		ADC_tempSensorInit();
-		float temperatureVal = 0;
+		ADC_temperatureSensorInit();
 		while(1){
-			temperatureVal = tempSensorRead();
-			delay(userDelay);
-			temperatureVal = tempSensorRead();
+			temperatureVal = temperatureSensorRead();
 			delay(userDelay);
 		}
 	}

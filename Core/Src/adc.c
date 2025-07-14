@@ -7,91 +7,431 @@
 
 #include "adc.h"
 
-#define ADC_BASE_ADDR 0x40012000U
-#define longPointerType volatile uint32_t*
 
-static volatile uint32_t* ADC_SR = (volatile uint32_t*)(ADC_BASE_ADDR + 0x00);
+/*
+ * -----------------------------------------------------------------
+ * Private Helpers
+ * -----------------------------------------------------------------
+ */
 
-static volatile uint32_t* ADC_CR1 = (volatile uint32_t*)(ADC_BASE_ADDR + 0x04);
-static volatile uint32_t* ADC_CR2 = (volatile uint32_t*)(ADC_BASE_ADDR + 0x08);
+/*
+ * @brief	Bit-mask of **writable** bits for every ADC reg
+ * 			A clear bit (0) marks a *reserved* position that **must not** be written.
+ *
+ * 			Index:  ::ADC_regName_t
+ */
+static const uint32_t ADC_VALID_BITS[ADC_REG_COUNT] = {
+		[ADC_SR] = ~(0x3FFFFFF << 6),
+		[ADC_CR1] = ~((0x1F << 27) | (0x3F << 16)),
+		[ADC_CR2] = ~((0x3F << 2) | (0xF << 12) | (0x1 << 23) | (0x1 << 31)),
 
-static volatile uint32_t* ADC_SMPR1 = (volatile uint32_t*)(ADC_BASE_ADDR + 0x0C);
-static volatile uint32_t* ADC_SMPR2 = (volatile uint32_t*)(ADC_BASE_ADDR + 0x10);
+		[ADC_SMPR1] = ~(0x1F << 27),
+		[ADC_SMPR2] = ~(0b11 << 30),
 
-static volatile uint32_t* ADC_JOFR1 = (volatile uint32_t*)(ADC_BASE_ADDR + 0x14);
-static volatile uint32_t* ADC_JOFR2 = (volatile uint32_t*)(ADC_BASE_ADDR + 0x18);
-static volatile uint32_t* ADC_JOFR3 = (volatile uint32_t*)(ADC_BASE_ADDR + 0x1C);
-static volatile uint32_t* ADC_JOFR4 = (volatile uint32_t*)(ADC_BASE_ADDR + 0x20);
+		[ADC_JOFR1] = ~(0xFFFFF << 12),
+		[ADC_JOFR2] = ~(0xFFFFF << 12),
+		[ADC_JOFR3] = ~(0xFFFFF << 12),
+		[ADC_JOFR4] = ~(0xFFFFF << 12),
 
-static volatile uint32_t* ADC_HTR = (volatile uint32_t*)(ADC_BASE_ADDR + 0x24);
-static volatile uint32_t* ADC_LTR = (volatile uint32_t*)(ADC_BASE_ADDR + 0x28);
+		[ADC_HTR] = ~(0xFFFFF << 12),
+		[ADC_LTR] = ~(0xFFFFF << 12),
 
-static volatile uint32_t* ADC_SQR1 = (volatile uint32_t*)(ADC_BASE_ADDR + 0x2C);
-static volatile uint32_t* ADC_SQR2 = (volatile uint32_t*)(ADC_BASE_ADDR + 0x30);
-static volatile uint32_t* ADC_SQR3 = (volatile uint32_t*)(ADC_BASE_ADDR + 0x34);
+		[ADC_SQR1] = ~(0xFF << 24),
+		[ADC_SQR2] = ~(0b11 << 30),
+		[ADC_SQR3] = ~(0b11 << 30),
 
-static volatile uint32_t* ADC_JSQR = (volatile uint32_t*)(ADC_BASE_ADDR + 0x38);
+		[ADC_JSQR] = ~(0x3FF << 22),
 
-static volatile uint32_t* ADC_JDR1 = (volatile uint32_t*)(ADC_BASE_ADDR + 0x3C);
-static volatile uint32_t* ADC_JDR2 = (volatile uint32_t*)(ADC_BASE_ADDR + 0x40);
-static volatile uint32_t* ADC_JDR3 = (volatile uint32_t*)(ADC_BASE_ADDR + 0x44);
-static volatile uint32_t* ADC_JDR4 = (volatile uint32_t*)(ADC_BASE_ADDR + 0x48);
+		[ADC_JDR1] = ~(0xFFFF << 16),
+		[ADC_JDR2] = ~(0xFFFF << 16),
+		[ADC_JDR3] = ~(0xFFFF << 16),
+		[ADC_JDR4] = ~(0xFFFF << 16),
 
-static volatile uint32_t* ADC_DR = (volatile uint32_t*)(ADC_BASE_ADDR + 0x4C);
-static volatile uint32_t* ADC_CCR = (volatile uint32_t*)(ADC_BASE_ADDR + 0x04 + 0x300);
+		[ADC_DR] = ~(0xFFFF << 16),
+		[ADC_CCR] = ~((0xFFFF << 0) | (0xF << 18) | (0xFF << 24)),
+};
 
+/*
+ * @brief	Lookup table for the ADC1 peripheral register
+ *
+ * 			This static pointer array maps each value of ::ADC_regName_t (index) to memory-mapped address
+ * 			of the corresponding ADC Register. Using the table avoids open-coded 'switch'/'if' blocks
+ * 			and makes register access simply
+ *
+ * 			**ADC_REG_COUNT**	Array Length
+ */
+#define REG_TABLE_ATTR static volatile uint32_t* const
 
-void ADC_tempSensorInit(){
-	my_RCC_ADC1_CLK_ENABLE();
+REG_TABLE_ATTR ADCRegLookupTable[ADC_REG_COUNT] = {
+		[ADC_SR] = GET_ADC_REG(ADC_SR),
+		[ADC_CR1] = GET_ADC_REG(ADC_CR1),
+		[ADC_CR2] = GET_ADC_REG(ADC_CR2),
+
+		[ADC_SMPR1] = GET_ADC_REG(ADC_SMPR1),
+		[ADC_SMPR2] = GET_ADC_REG(ADC_SMPR2),
+
+		[ADC_JOFR1] = GET_ADC_REG(ADC_JOFR1),
+		[ADC_JOFR2] = GET_ADC_REG(ADC_JOFR2),
+		[ADC_JOFR3] = GET_ADC_REG(ADC_JOFR3),
+		[ADC_JOFR4] = GET_ADC_REG(ADC_JOFR4),
+
+		[ADC_HTR] = GET_ADC_REG(ADC_HTR),
+		[ADC_LTR] = GET_ADC_REG(ADC_LTR),
+
+		[ADC_SQR1] = GET_ADC_REG(ADC_SQR1),
+		[ADC_SQR2] = GET_ADC_REG(ADC_SQR2),
+		[ADC_SQR3] = GET_ADC_REG(ADC_SQR3),
+
+		[ADC_JSQR] = GET_ADC_REG(ADC_JSQR),
+
+		[ADC_JDR1] = GET_ADC_REG(ADC_JDR1),
+		[ADC_JDR2] = GET_ADC_REG(ADC_JDR2),
+		[ADC_JDR3] = GET_ADC_REG(ADC_JDR3),
+		[ADC_JDR4] = GET_ADC_REG(ADC_JDR4),
+
+		[ADC_DR] = GET_ADC_REG(ADC_DR),
+		[ADC_CCR] = GET_ADC_COMMON_REG(ADC_CCR),
+};
+
+/*
+ * -----------------------------------------------------------------
+ * Bit-manipulation Helpers
+ * -----------------------------------------------------------------
+ */
+
+/*
+ * @brief	Check that 'mode' is in range and 'bitPosition' is not reserved
+ * 			This function flexibly check if multi-bits are valid
+ *
+ * @return	true	Inserted bit indice is valid
+ * 			false	...invalid or reserved bit
+ */
+static inline bool isValidADCBit(uint8_t bitPosition, uint8_t bitWidth, ADC_regName_t regName){
+	if(regName >= ADC_REG_COUNT || bitWidth == 0 || ((bitPosition + bitWidth) > 32)) return false;
+	uint32_t mask = ((bitWidth == 32) ? 0xFFFFFFFFu : ((1U << bitWidth) - 1U) << bitPosition);
+
+	return (ADC_VALID_BITS[regName] & mask) == mask;
+}
+
+/*
+ * @brief	Generic masked write helper
+ *
+ * @param	reg				Pointer points to the register
+ * @param	bitPosition		First bit of the field
+ * @param	bitWidth		Field width in bits
+ * @param	value			Field value (must fit in @p bitWidth)
+ */
+static void writeADCBits(volatile uint32_t* reg, uint8_t bitPosition, uint8_t bitWidth, uint32_t value){
 	/*
-	 * ADC Clock support 36MHz max (datasheet)
-	 * APB2 clock is now 50MHz which is > ADC Clock
-	 * Therefore, use prescaler of 2 to 50/2 = 25MHz for ADC Clock
+	 * The function leaves the register unchanged if
+	 * 		@p bitPosition larger than 31 because shifting by 32 is undefined in C
+	 * 		@p value is too large for the field
+	 * 		The field would spill past bit 31
 	 */
-	*ADC_CCR &= ~(0b11 << 16);
-	*ADC_CCR |= (0b00 << 16); //Set prescaler to 2 so that PCLK2 / 2 <= 36MHz
+	if(bitPosition > 31 || bitWidth > 32) return;
+	if(bitWidth < 32 && value >= (1U << bitWidth)) return;
+	if((bitWidth + bitPosition) > 32) return;
 
-	/*
-	 * t_cycle = 1/25MHz = 40ns per ADC clock cycle
-	 * datasheet says min sampling time when reading the temperature sensor is 10us
-	 *
-	 * -> 10us / 40ns = 250 cycles
-	 * Therefore, choose 0b111: 480 cycles in ADC_SMPR1 for channel 16
-	 */
-	*ADC_SMPR1 &= ~(0b111 << 18); //SMP16[2:0] starts at bit 18th
-	*ADC_SMPR1 |= (0b111 << 18); //480 cycles
+	//Mask off the old bit and OR with the new value
+	uint32_t mask = (bitWidth == 32) ? 0xFFFFFFFFu : ((1U << bitWidth) - 1) << bitPosition;
+	uint32_t shiftedValue = (value << bitPosition);
+	*reg = (*reg & ~mask) | (shiftedValue & mask);
+}
 
-	*ADC_JSQR &= ~(0b11 << 20); //clear bits
-	*ADC_JSQR |= (0b00 << 20); //write 0b00 to JL[1:0] to choose 1 conversion
+/*
+ * @brief	Read a field of "bitWidth" bits from a register starting at 'bitPosition'
+ *
+ * @param	reg			 	Pointer points to the register
+ * @param	bitPosition		Starting bit position (0-31)
+ * @param	bitWidth		Number of bits/bit size that fit @p value
+ */
+static uint32_t readADCBits(volatile uint32_t* reg, uint8_t bitPosition, uint8_t bitWidth){
+	if(bitWidth == 32) return *reg; //Full-word: no mask needed
 
-	*ADC_JSQR &= ~(0b1111 << 0);
-	*ADC_JSQR |= (16 << 16); //Select JSQ4[4:1] start at bit 16
-
-	*ADC_CCR |= (1 << 23); //Enabling temperature sensor
-
-	*ADC_CR2 |= (1 << 0); //Enable ADC
+	uint32_t mask = ((1U << bitWidth) - 1U);
+	return (*reg >> bitPosition) & mask;
 }
 
 
 /*
- *
+ * --------------------------------------------------------------------------
+ * Public API
+ * --------------------------------------------------------------------------
  */
-float tempSensorRead(){
-	*ADC_CR2 |= (1 << 22); //JSWSTART Starts conversion of injected channels
-	while(((*ADC_SR >> 2) & 1u) == 0); //Wait until injected channel conversion is completed
-	*ADC_SR &= ~(1u << 2); //Clear the bit since the ref man says it is cleared by software
-	uint16_t adcTempRaw = *ADC_JDR1;
+
+/*
+ * @brief	Initialize temperature sensor
+ */
+void ADC_temperatureSensorInit(){
+	my_RCC_ADC1_CLK_ENABLE();
 	/*
-	 * Vref 3.0		4095 (12bits)
-	 * Vin ?		adcTempRaw
+	 * ADC Clock supports 36MHz max (datasheet)
+	 * However, APB2 Clock is customized with 50MHz which is larger than ADC Clock
+	 * Therefore, we set prescaler of 2 in register ADC_CCR to feed a correct frequency to ADC Clock that is below 36MHz
+	 * 		50MHz / 2 = 25MHz < 36MHz
 	 */
-	float vin = (adcTempRaw * 3.0) / 4095;
-	float temperature = ((vin - 0.76) / 0.0025) + 25;
+	writeADC(16, ADC_CCR, 0b00); //Set prescaler of 2
+
+	/*
+	 * T_adcCycle = 1/25MHz = 40ns (It costs 40ns to complete one ADC clock cycle)
+	 * Datasheet says min sampling time when reading the temperature sensor is 10us
+	 *
+	 * Therefore, 10us/40ns = 250 cycles
+	 * 		Choose 0b111: 480 cyles in ADC_SMPR1 for channel 16
+	 */
+	writeADC(18, ADC_SMPR1, 0b111); //480 cycles
+	writeADC(20, ADC_JSQR, 0b00); //Choose 1 conversion by writing 0b00 to JL[1:0]
+	writeADC(15, ADC_JSQR, 16); //Select JSQ4[4:1] start at bit 15
+	writeADC(23, ADC_CCR, SET); //Enable temperature sensor
+	writeADC(0, ADC_CR2, SET); //Enable ADC
+}
+
+/*
+ * @brief
+ */
+float temperatureSensorRead(){
+	writeADC(22, ADC_CR2, SET); //JSWSTART starts conversion of injected channels
+	while((readADC(2, ADC_SR) & 1u) == 0u); //Wait until injected channe conversion is completed
+	writeADC(2, ADC_SR, RESET); //Clear the bit since the ref manual says "cleared by software"
+
+	uint16_t adcTemperatureRaw = readADC(0, ADC_JDR1);
+	float v_in = (adcTemperatureRaw * 3.0) / 4095;
+	float temperature = ((v_in - 0.76) / 0.0025) + 25;
 	return temperature;
 }
 
+/*
+ * @brief	Write a bit-field to an ADC1 peripheral register
+ *
+ * 			Figures out how many bits the setting needs
+ * 			Won't touch ay bits the datasheet says are off-limits.
+ * 			Changes only the bits you asked for, leaving the rest unchanged.
+ *
+ * @param	bitPosition		The LSB index of the field (0-31)
+ * @param	mode			Which register of ADC to access (enum @ref ADC_regName_t)
+ *
+ * @param	value			The value to write. There is a helper function to check if
+ * 							@p value fits into the target field width; if it does not,
+ * 							the call ignore
+ */
+void writeADC(uint8_t bitPosition, ADC_regName_t regName, uint32_t value){
+	//Early sanity
+	uint8_t bitWidth = 1;
+
+	switch(regName){
+		case ADC_SR:
+			break;
+
+		case ADC_CR1:
+			if(bitPosition == 0) bitWidth = 5;
+			else if(bitPosition == 13) bitWidth = 3;
+			else if(bitPosition == 24) bitWidth = 2;
+			break;
+
+		case ADC_CR2:
+			if(bitPosition == 16 || bitPosition == 24) bitWidth = 4;
+			else if(bitPosition == 20 || bitPosition == 28) bitWidth = 2;
+			break;
+
+		case ADC_SMPR1:
+			bitWidth = 3;
+			break;
+
+		case ADC_SMPR2:
+			bitWidth = 3;
+			break;
+
+		case ADC_JOFR1:
+			bitWidth = 12;
+			break;
+
+		case ADC_JOFR2:
+			bitWidth = 12;
+			break;
+
+		case ADC_JOFR3:
+			bitWidth = 12;
+			break;
+
+		case ADC_JOFR4:
+			bitWidth = 12;
+			break;
+
+		case ADC_HTR:
+			bitWidth = 12;
+			break;
+
+		case ADC_LTR:
+			bitWidth = 12;
+			break;
+
+		case ADC_SQR1:
+			if(bitPosition == 0 || bitPosition == 5 || bitPosition == 10 || bitPosition == 15) bitWidth = 5;
+			else if(bitPosition == 20) bitWidth = 4;
+			break;
+
+		case ADC_SQR2:
+			bitWidth = 5;
+			break;
+
+		case ADC_SQR3:
+			bitWidth = 5;
+			break;
+
+		case ADC_JSQR:
+			if(bitPosition == 0 || bitPosition == 5 || bitPosition == 10 || bitPosition == 15) bitWidth = 5;
+			else if(bitPosition == 20) bitWidth = 2;
+			break;
+
+		case ADC_JDR1:
+			bitWidth = 16;
+			break;
+
+		case ADC_JDR2:
+			bitWidth = 16;
+			break;
+
+		case ADC_JDR3:
+			bitWidth = 16;
+			break;
+
+		case ADC_JDR4:
+			bitWidth = 16;
+			break;
+
+		case ADC_DR:
+			bitWidth = 16;
+			break;
+
+		case ADC_CCR:
+			if(bitPosition == 16) bitWidth = 2;
+			break;
+
+		default: return;
+	}
+
+	if(!isValidADCBit(bitPosition, bitWidth, regName)) return;
+
+	volatile uint32_t* reg = ADCRegLookupTable[regName];
+
+	writeADCBits(reg, bitPosition, bitWidth, value);
+}
 
 
+/*
+ * @brief	Read a bit-field from an ADC1 peripheral register
+ *
+ * @param	bitPosition		The LSB index of the field (0-31)
+ * @param	mode			Which register of ADC to access (enum @ref ADC_regName_t)
+ *
+ * @param	value			The value to write. There is a helper function to check if
+ * 							@p value fits into the target field width; if it does not,
+ * 							the call ignore
+ *
+ * @return	The extracted field value on success.
+ * 			If the cal is invalid, the constant @c 0xFFFFFFFF is returned as an ERROR_FLAG
+ */
+uint32_t readADC(uint8_t bitPosition, ADC_regName_t regName){
+	uint32_t const ERROR_FLAG = 0xFFFFFFFF;
+	uint8_t bitWidth = 1;
+
+	switch(regName){
+		case ADC_SR:
+			break;
+
+		case ADC_CR1:
+			if(bitPosition == 0) bitWidth = 5;
+			else if(bitPosition == 13) bitWidth = 3;
+			else if(bitPosition == 24) bitWidth = 2;
+			break;
+
+		case ADC_CR2:
+			if(bitPosition == 16 || bitPosition == 24) bitWidth = 4;
+			else if(bitPosition == 20 || bitPosition == 28) bitWidth = 2;
+			break;
+
+		case ADC_SMPR1:
+			bitWidth = 3;
+			break;
+
+		case ADC_SMPR2:
+			bitWidth = 3;
+			break;
+
+		case ADC_JOFR1:
+			bitWidth = 12;
+			break;
+
+		case ADC_JOFR2:
+			bitWidth = 12;
+			break;
+
+		case ADC_JOFR3:
+			bitWidth = 12;
+			break;
+
+		case ADC_JOFR4:
+			bitWidth = 12;
+			break;
+
+		case ADC_HTR:
+			bitWidth = 12;
+			break;
+
+		case ADC_LTR:
+			bitWidth = 12;
+			break;
+
+		case ADC_SQR1:
+			if(bitPosition == 0 || bitPosition == 5 || bitPosition == 10 || bitPosition == 15) bitWidth = 5;
+			else if(bitPosition == 20) bitWidth = 4;
+			break;
+
+		case ADC_SQR2:
+			bitWidth = 5;
+			break;
+
+		case ADC_SQR3:
+			bitWidth = 5;
+			break;
+
+		case ADC_JSQR:
+			if(bitPosition == 0 || bitPosition == 5 || bitPosition == 10 || bitPosition == 15) bitWidth = 5;
+			else if(bitPosition == 20) bitWidth = 2;
+			break;
+
+		case ADC_JDR1:
+			bitWidth = 16;
+			break;
+
+		case ADC_JDR2:
+			bitWidth = 16;
+			break;
+
+		case ADC_JDR3:
+			bitWidth = 16;
+			break;
+
+		case ADC_JDR4:
+			bitWidth = 16;
+			break;
+
+		case ADC_DR:
+			bitWidth = 16;
+			break;
+
+		case ADC_CCR:
+			if(bitPosition == 16) bitWidth = 2;
+			break;
+
+		default: return ERROR_FLAG;
+	}
+
+	if(!isValidADCBit(bitPosition, bitWidth, regName)) return ERROR_FLAG;
+
+	volatile uint32_t* reg = ADCRegLookupTable[regName];
+	return readADCBits(reg, bitPosition, bitWidth);
+}
 
 
 

@@ -88,6 +88,12 @@
  * FLASH INTERFACE REG ADDR
  */
 #define FLASH_INTF_REG_ADDR 0x40023C00UL
+
+/*
+ * ANALOG TO DIGITAL CONVERTER (ADC)
+ */
+#define ADC1_BASE_ADDR 0x40012000U
+#define ADC_COMMON_BASE_ADDR 0x40012300U
 ////////////END OF BASE ADDRESSES////////////
 
 
@@ -294,6 +300,44 @@ typedef struct{
 	volatile uint32_t RCC_DCK_CFGR;		//0x8C (RCC Dedicated Clocks Config Reg)
 }RCC_Register_Offset_t;
 
+/*
+ * Lists of ADC Register offsets
+ */
+typedef struct{
+	volatile uint32_t ADC_SR;		//Offset:0x00	Reset:0x0000 0000	(ADC Status Reg)
+	volatile uint32_t ADC_CR1;		//Offset:0x04	Reset:0x0000 0000	(ADC Control Reg)
+	volatile uint32_t ADC_CR2;		//Offset:0x08	Reset:0x0000 0000	(ADC Control Reg)
+
+	volatile uint32_t ADC_SMPR1;	//Offset:0x0C	Reset:0x0000 0000	(ADC Sampling Time Reg1)
+	volatile uint32_t ADC_SMPR2;	//Offset:0x10	Reset:0x0000 0000	(ADC Sampling Time Reg2)
+
+	volatile uint32_t ADC_JOFR1;	//Offset:0x14	Reset:0x0000 0000	(ADC Injected Channel Data Offset Reg1)
+	volatile uint32_t ADC_JOFR2;	//Offset:0x18	...
+	volatile uint32_t ADC_JOFR3;	//Offset:0x1C	...
+	volatile uint32_t ADC_JOFR4;	//Offset:0x20	...
+
+	volatile uint32_t ADC_HTR;		//Offset:0x24	Reset:0x0000 0FFF	(ADC Watchdog Higher Threshold Reg)
+	volatile uint32_t ADC_LTR;		//Offset:0x28	Reset:0x0000 0000	(ADC Watchdog Lower Threshold Reg)
+
+	volatile uint32_t ADC_SQR1;		//Offset:0x2C	Reset:0x0000 0000	(ADC Regular Sequence Reg1)
+	volatile uint32_t ADC_SQR2;		//Offset:0x30	...
+	volatile uint32_t ADC_SQR3;		//Offset:0x34	...
+
+	volatile uint32_t ADC_JSQR;		//Offset:0x38	Reset:0x0000 0000	(ADC Injected Sequence Reg)
+
+	volatile uint32_t ADC_JDR1;		//Offset:0x3C	Reset:0x0000 0000	(ADC Injected Data Reg1)
+	volatile uint32_t ADC_JDR2;		//Offset:0x40	...
+	volatile uint32_t ADC_JDR3;		//Offset:0x44	...
+	volatile uint32_t ADC_JDR4;		//Offset:0x48	...
+
+	volatile uint32_t ADC_DR;		//Offset:0x4C	Reset:0x0000 0000	(ADC Regular Data Reg)
+}ADC_Register_Offset_t;
+
+typedef struct {
+	volatile uint32_t ADC_CSR; //Offset:0x00
+	volatile uint32_t ADC_CCR; //Offset:0x04
+	volatile uint32_t ADC_CDR; //Offset:0x08
+}ADC_Common_Register_Offset_t;
 ////////////END OF REGISTER OFFSET STRUCTS////////////
 
 /*
@@ -361,6 +405,12 @@ typedef struct{
  * RCC Reg Pointers
  */
 #define RCC_REG ((volatile RCC_Register_Offset_t*) RCC_BASE_ADDR)
+
+/*
+ * ADC Reg Pointers
+ */
+#define ADC_REG ((volatile ADC_Register_Offset_t*)ADC1_BASE_ADDR)
+#define ADC_COMMON_REG ((volatile ADC_Common_Register_Offset_t*)ADC_COMMON_BASE_ADDR)
 ////////////END OF REGISTER POINTERS////////////
 
 

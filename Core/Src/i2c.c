@@ -102,7 +102,7 @@ REG_TABLE_ATTR I2C3RegLookupTable[I2C_REG_COUNT] = {
  * 			false	...invalid or reserved bit
  */
 static inline bool isValidI2CBit(uint8_t bitPosition, uint8_t bitWidth, I2C_Mode_t mode){
-	if(mode >= I2C_REG_COUNT || bitWidth == 0 || ((bitPosition + bitPosition) > 32)) return false;
+	if(mode >= I2C_REG_COUNT || bitWidth == 0 || ((bitPosition + bitWidth) > 32)) return false;
 	uint32_t mask = ((bitWidth == 32) ? 0xFFFFFFFFu : ((1U << bitWidth) - 1U) << bitPosition);
 
 	return (I2C_VALID_BITS[mode] & mask) == mask;
